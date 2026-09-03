@@ -194,17 +194,17 @@ const LongJump = {
                 if (st.phase === 'hold' || (st.phase === 'fly' && st.jump.t < 0.35)) {
                     const a = st.jump.angle, good = a > 38 && a < 50;
                     const col = good ? '#60ff60' : '#ffd95c';
-                    const ox = x + 2, oy = gy - 10;
-                    const rad = a * Math.PI / 180, len = 26;
+                    const ox = x + 10, oy = gy - 3;
+                    const rad = a * Math.PI / 180, len = 30;
                     const ex = ox + Math.cos(rad) * len, ey = oy - Math.sin(rad) * len;
                     // 45도 안내선
                     Draw.line(g, ox, oy, ox + Math.cos(Math.PI / 4) * len, oy - Math.sin(Math.PI / 4) * len, 'rgba(255,255,255,0.35)', 1);
                     g.fillStyle = 'rgba(255,255,255,0.35)'; g.fillRect(Math.round(ox), Math.round(oy), len, 1);
                     // 화살표
-                    Draw.line(g, ox, oy, ex, ey, col, 2);
-                    const ah = 5, ang1 = rad + Math.PI * 0.8, ang2 = rad - Math.PI * 0.8;
-                    Draw.line(g, ex, ey, ex + Math.cos(ang1) * ah, ey - Math.sin(ang1) * ah, col, 2);
-                    Draw.line(g, ex, ey, ex + Math.cos(ang2) * ah, ey - Math.sin(ang2) * ah, col, 2);
+                    Draw.line(g, ox, oy, ex, ey, col, 3);
+                    const ah = 6, ang1 = rad + Math.PI * 0.8, ang2 = rad - Math.PI * 0.8;
+                    Draw.line(g, ex, ey, ex + Math.cos(ang1) * ah, ey - Math.sin(ang1) * ah, col, 3);
+                    Draw.line(g, ex, ey, ex + Math.cos(ang2) * ah, ey - Math.sin(ang2) * ah, col, 3);
                     // 각도 숫자 (머리 위)
                     const label = Math.round(a) + ' DEG';
                     const lw = Font.width(label, 1);
