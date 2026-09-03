@@ -138,15 +138,17 @@ const Engine = (() => {
         if (scene && scene.resize) scene.resize();
     }
     function layoutPads() {
-        const W = S.W, H = S.H, top = Math.floor(H * 0.62);
-        // RUN 패드는 양쪽 끝(양 엄지), 점프/던지기 패드는 가운데
-        const a = Math.floor(W * 0.28), b = Math.floor(W * 0.72);
+        // 엄지 크기의 작은 패드. RUN 은 양쪽 아래 모서리, 점프/던지기는 아래 가운데
+        const W = S.W, H = S.H;
+        const h = Math.round(H * 0.3), w = Math.round(W * 0.2), m = 6;
+        const aw = Math.round(W * 0.24);
         pads = {
-            runL:   { x: 0, y: top, w: a, h: H - top, label: 'RUN' },
-            action: { x: a, y: top, w: b - a, h: H - top, label: '' },
-            runR:   { x: b, y: top, w: W - b, h: H - top, label: 'RUN' }
+            runL:   { x: m, y: H - h - m, w: w, h: h, label: 'RUN' },
+            action: { x: Math.round((W - aw) / 2), y: H - h - m, w: aw, h: h, label: '' },
+            runR:   { x: W - w - m, y: H - h - m, w: w, h: h, label: 'RUN' }
         };
     }
+    const HIT_PAD = 10;   // 판정 여유 (그림보다 넓게)
     window.addEventListener('resize', resize);
     window.addEventListener('orientationchange', () => setTimeout(resize, 120));
 
@@ -157,8 +159,14 @@ const Engine = (() => {
     }
     function padAt(x, y) {
         if (!padsVisible) return null;
-        for (const k in pads) { const p = pads[k]; if (x >= p.x && x < p.x + p.w && y >= p.y && y < p.y + p.h) return k; }
-        return null;
+        let best = null, bestD = Infinity;
+        for (const k in pads) {
+            const p = pads[k];
+            if (x < p.x - HIT_PAD || x >= p.x + p.w + HIT_PAD || y < p.y - HIT_PAD || y >= p.y + p.h + HIT_PAD) continue;
+            const d = Math.abs(x - (p.x + p.w / 2)) + Math.abs(y - (p.y + p.h / 2));
+            if (d < bestD) { bestD = d; best = k; }
+        }
+        return best;
     }
     function down(id, x, y) {
         const name = padAt(x, y) || 'screen';
@@ -230,9 +238,9 @@ const Engine = (() => {
             g.fillRect(p.x + 1, p.y + 1, p.w - 2, 1); g.fillRect(p.x + 1, p.y + p.h - 2, p.w - 2, 1);
             g.fillRect(p.x + 1, p.y + 1, 1, p.h - 2); g.fillRect(p.x + p.w - 2, p.y + 1, 1, p.h - 2);
             const label = k === 'action' ? S.actionLabel : p.label;
-            if (label) Font.text(g, label, p.x + p.w / 2, p.y + p.h / 2 - 7, { scale: 2, color: on ? '#ffffff' : 'rgba(255,255,255,0.75)', align: 'center' });
-            if (k === 'runL') Font.text(g, '<', p.x + p.w / 2 - 22, p.y + p.h / 2 - 3, { color: 'rgba(255,255,255,0.5)' });
-            if (k === 'runR') Font.text(g, '>', p.x + p.w / 2 + 18, p.y + p.h / 2 - 3, { color: 'rgba(255,255,255,0.5)' });
+            if (!label) continue;
+            const sc = p.w >= 6 * label.length * 2 + 8 ? 2 : 1;
+            Font.text(g, label, p.x + p.w / 2, p.y + p.h / 2 - 3.5 * sc, { scale: sc, color: on ? '#ffffff' : 'rgba(255,255,255,0.8)', align: 'center' });
         }
     }
     function drawRotate() {
