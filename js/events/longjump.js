@@ -7,12 +7,14 @@ const LongJump = {
     qualify: 6.50, wr: 8.90, lowerIsBetter: false,
     format: v => v.toFixed(2), unit: 'M',
     attempts: 3,
-    hint: ['RUN 연타로 달려서 흰 발구름판 앞에서 JUMP', 'JUMP 를 누르고 있으면 각도가 올라갑니다. 45도쯤에서 떼세요', '판을 지나서 뛰면 FOUL. 기회는 3번'],
+    hint: ['RUN 연타로 달려서 흰 발구름판 위에서 JUMP', 'JUMP 를 누르고 있으면 각도가 올라갑니다. 45도쯤에서 떼세요', '판을 지나서 뛰면 FOUL. 기회는 3번'],
     actionLabel: 'JUMP',
 
     TUNE: {
         GAIN: 1.55, SAME_BTN: 0.7, DRAG: 1.2, VMAX: 11.6, PPM: 12,
-        BOARD: 40,            // 발구름판 위치 (m)
+        BOARD: 40,            // 파울 라인 위치 (m). 발구름판은 그 앞 1m
+        BOARD_W: 1.0,         // 발구름판 폭 (m)
+        GRACE: 0.15,          // 파울 라인을 살짝 넘긴 경우 봐주는 거리 (m)
         ANGLE_SPEED: 75,      // 초당 각도 상승 (도)
         POWER: 0.78           // 비거리 배율
     },
@@ -110,7 +112,7 @@ const LongJump = {
                     Sound.step();
                 } else if (name === 'action') {
                     if (p.v < 1) return;
-                    if (p.pos > T.BOARD + 0.05) { foul(); return; }
+                    if (p.pos > T.BOARD + T.GRACE) { foul(); return; }
                     st.jump = { from: p.pos, angle: 0 };
                     st.phase = 'hold';
                     Native.haptic('LIGHT');
@@ -133,7 +135,9 @@ const LongJump = {
                     Font.text(g, String(m), x + 3, L.trackTop + 2, { color: 'rgba(255,255,255,0.8)' });
                 }
                 // 발구름판(흰색)과 파울 라인(빨강)
-                g.fillStyle = '#ffffff'; g.fillRect(bx - 4, L.trackTop, 4, L.trackBot - L.trackTop);
+                const bw = Math.round(T.BOARD_W * P);
+                g.fillStyle = '#ffffff'; g.fillRect(bx - bw, L.trackTop, bw, L.trackBot - L.trackTop);
+                g.fillStyle = '#d8d8d8'; for (let y = L.trackTop + 3; y < L.trackBot - 2; y += 4) g.fillRect(bx - bw + 2, y, bw - 4, 1);
                 g.fillStyle = '#e03030'; g.fillRect(bx, L.trackTop, 2, L.trackBot - L.trackTop);
                 // 모래밭
                 const px0 = bx + 2, px1 = Math.round((T.BOARD + 14) * P - st.camX);
