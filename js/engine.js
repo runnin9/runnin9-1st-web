@@ -116,7 +116,7 @@ const Engine = (() => {
     const ctx = canvas.getContext('2d');
     const buf = document.createElement('canvas');
     const g = buf.getContext('2d');
-    const S = { W: 320, H: 180, scale: 1, dpr: 1, portrait: false, time: 0, actionLabel: 'JUMP' };
+    const S = { W: 320, H: 180, scale: 1, dpr: 1, portrait: false, time: 0, actionLabel: 'JUMP', leftHanded: false };
     let scene = null, pads = null, padsVisible = false;
     const pressed = {};            // 패드 이름 -> 눌린 손가락 수
     const pointers = new Map();    // pointerId -> 패드 이름
@@ -138,15 +138,18 @@ const Engine = (() => {
         if (scene && scene.resize) scene.resize();
     }
     function layoutPads() {
-        // 엄지 크기의 작은 패드. RUN 은 양쪽 아래 모서리, 점프/던지기는 아래 가운데
+        // 엄지 크기의 작은 패드. RUN 은 양쪽 아래 모서리,
+        // 점프/던지기 패드는 오른쪽 RUN 옆에 붙임 (왼손잡이 설정이면 좌우 반전)
         const W = S.W, H = S.H;
-        const h = Math.round(H * 0.3), w = Math.round(W * 0.2), m = 6;
-        const aw = Math.round(W * 0.24);
-        pads = {
-            runL:   { x: m, y: H - h - m, w: w, h: h, label: 'RUN' },
-            action: { x: Math.round((W - aw) / 2), y: H - h - m, w: aw, h: h, label: '' },
-            runR:   { x: W - w - m, y: H - h - m, w: w, h: h, label: 'RUN' }
-        };
+        const h = Math.round(H * 0.3), w = Math.round(W * 0.2), m = 6, gap = 8;
+        const aw = Math.round(W * 0.2);
+        const y = H - h - m;
+        const L = { x: m, y, w, h, label: 'RUN' };
+        const R = { x: W - w - m, y, w, h, label: 'RUN' };
+        const A = S.leftHanded
+            ? { x: m + w + gap, y, w: aw, h, label: '' }
+            : { x: W - w - m - gap - aw, y, w: aw, h, label: '' };
+        pads = { runL: L, action: A, runR: R };
     }
     const HIT_PAD = 10;   // 판정 여유 (그림보다 넓게)
     window.addEventListener('resize', resize);
@@ -280,9 +283,10 @@ const Engine = (() => {
     }
     function isPressed(name) { return pressed[name] > 0; }
     function setActionLabel(l) { S.actionLabel = l; }
+    function setLeftHanded(v) { S.leftHanded = !!v; layoutPads(); }
     function start() { resize(); requestAnimationFrame(frame); }
     function isPortrait() { return S.portrait; }
     function currentScene() { return scene; }
 
-    return { S, g, pads: () => pads, setScene, currentScene, isPressed, setActionLabel, kr, start, isPortrait };
+    return { S, g, pads: () => pads, setScene, currentScene, isPressed, setActionLabel, setLeftHanded, kr, start, isPortrait };
 })();
