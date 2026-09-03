@@ -14,3 +14,7 @@ for (const [src, dst] of files) {
   fs.copyFileSync(path.join(root, src), path.join(www, dst));
   console.log(`copied ${src} -> www/${dst}`);
 }
+// js/ 폴더 전체 복사
+fs.rmSync(path.join(www, 'js'), { recursive: true, force: true });
+fs.cpSync(path.join(root, 'js'), path.join(www, 'js'), { recursive: true });
+console.log('copied js/ -> www/js/');
