@@ -1,0 +1,12 @@
+{
+    "name": "Runnin9 무한 달리기",
+    "short_name": "Runnin9",
+    "start_url": "game.html",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#1a1b2e",
+    "theme_color": "#1a1b2e",
+    "icons": [
+        { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    ]
+}
