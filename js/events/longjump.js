@@ -80,7 +80,7 @@ const LongJump = {
                     else if (st.timer > 20) foul();
                 } else if (st.phase === 'hold') {
                     st.jump.angle = Math.min(90, st.jump.angle + T.ANGLE_SPEED * dt);
-                    p.y = Math.min(6, p.y + 12 * dt);
+                    p.y = 0;
                     if (st.jump.angle >= 90) launch(90);
                 } else if (st.phase === 'fly') {
                     const j = st.jump;
@@ -190,15 +190,26 @@ const LongJump = {
                 // 이번 종목 기록들
                 if (st.marks.length) Font.text(g, st.marks.map((m, i) => (m == null ? 'X' : ev.format(m))).join('  '), W / 2, 20, { color: '#c8d8ff', align: 'center' });
 
-                // 각도계 (누르는 동안과 비행 중)
-                if (st.phase === 'hold' || st.phase === 'fly') {
-                    const a = st.jump.angle, cx = 48, cy = 66;
-                    Draw.panel(g, cx - 40, cy - 30, 80, 44, 'rgba(0,0,0,0.65)', '#ffffff');
-                    Font.text(g, Math.round(a) + ' DEG', cx, cy - 25, { scale: 1, color: a > 38 && a < 50 ? '#60ff60' : '#ffd95c', align: 'center' });
-                    const r = 22, rad = a * Math.PI / 180;
-                    Draw.line(g, cx - 20, cy + 8, cx - 20 + Math.cos(rad) * r, cy + 8 - Math.sin(rad) * r, a > 38 && a < 50 ? '#60ff60' : '#ffd95c', 2);
-                    g.fillStyle = 'rgba(255,255,255,0.4)'; g.fillRect(cx - 20, cy + 8, r, 1);
-                    Draw.line(g, cx - 20, cy + 8, cx - 20 + Math.cos(Math.PI / 4) * r, cy + 8 - Math.sin(Math.PI / 4) * r, 'rgba(96,255,96,0.35)', 1);
+                // 각도 화살표: 누르는 동안 선수 몸에서 뻗어 나오며 수평에서 천천히 올라감
+                if (st.phase === 'hold' || (st.phase === 'fly' && st.jump.t < 0.35)) {
+                    const a = st.jump.angle, good = a > 38 && a < 50;
+                    const col = good ? '#60ff60' : '#ffd95c';
+                    const ox = x + 2, oy = gy - 10;
+                    const rad = a * Math.PI / 180, len = 26;
+                    const ex = ox + Math.cos(rad) * len, ey = oy - Math.sin(rad) * len;
+                    // 45도 안내선
+                    Draw.line(g, ox, oy, ox + Math.cos(Math.PI / 4) * len, oy - Math.sin(Math.PI / 4) * len, 'rgba(255,255,255,0.35)', 1);
+                    g.fillStyle = 'rgba(255,255,255,0.35)'; g.fillRect(Math.round(ox), Math.round(oy), len, 1);
+                    // 화살표
+                    Draw.line(g, ox, oy, ex, ey, col, 2);
+                    const ah = 5, ang1 = rad + Math.PI * 0.8, ang2 = rad - Math.PI * 0.8;
+                    Draw.line(g, ex, ey, ex + Math.cos(ang1) * ah, ey - Math.sin(ang1) * ah, col, 2);
+                    Draw.line(g, ex, ey, ex + Math.cos(ang2) * ah, ey - Math.sin(ang2) * ah, col, 2);
+                    // 각도 숫자 (머리 위)
+                    const label = Math.round(a) + ' DEG';
+                    const lw = Font.width(label, 1);
+                    Draw.panel(g, x - lw / 2 - 3, gy - 42, lw + 6, 11, 'rgba(0,0,0,0.65)');
+                    Font.text(g, label, x, gy - 40, { color: col, align: 'center' });
                 }
                 // 메시지
                 const my = 36;
