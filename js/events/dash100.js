@@ -13,13 +13,8 @@ const Dash100 = {
     actionLabel: '',
 
     // ----- 조작감 튜닝 상수 -----
-    TUNE: {
-        GAIN: 1.55,          // 한 번 두드릴 때 늘어나는 속도 (m/s)
-        SAME_BTN: 0.7,       // 같은 패드를 연속으로 두드릴 때의 효율
-        DRAG: 1.2,           // 초당 속도 감쇠 비율
-        VMAX: 11.6,          // 최고 속도 (m/s)
-        PPM: 12              // 1m 당 픽셀
-    },
+    // 달리기 조작감은 sprites.js 의 RunTune 에서 공용으로 조절
+    TUNE: { PPM: 12 },
 
     create() {
         const ev = this, T = this.TUNE, L = Stadium.L;
@@ -51,9 +46,7 @@ const Dash100 = {
                     if (st.phase === 'run') st.timer += dt;
                     if (st.msg === 'GO!' && st.t > 0.8) st.msg = '';
                     // 플레이어
-                    P.v = Math.max(0, P.v - P.v * T.DRAG * dt);
-                    P.pos += P.v * dt;
-                    P.anim += P.v * dt * 1.5;
+                    RunTune.step(P, dt);
                     if (!P.done && P.pos >= 100) {
                         P.done = true;
                         P.time = st.timer - (P.pos - 100) / Math.max(P.v, 0.1);
@@ -86,9 +79,7 @@ const Dash100 = {
                     st.phase = 'false'; st.t = 0; st.msg = 'FALSE START!'; st.falseStarts++;
                     Sound.fail(); Native.vibrate(120);
                 } else if (st.phase === 'run' && !P.done) {
-                    const gain = name !== P.lastBtn ? T.GAIN : T.GAIN * T.SAME_BTN;
-                    P.v = Math.min(T.VMAX, P.v + gain);
-                    P.lastBtn = name; P.taps++;
+                    RunTune.tap(P, name);
                     Sound.step();
                 }
             },
@@ -108,7 +99,7 @@ const Dash100 = {
                 // 속도계
                 const kmh = Math.round(st.player.v * 3.6);
                 Font.text(g, 'SPEED ' + String(kmh).padStart(2, '0') + ' KM/H', 4, 20, { color: '#ffffff' });
-                const barW = 60, ratio = Math.min(1, st.player.v / T.VMAX);
+                const barW = 60, ratio = Math.min(1, st.player.v / RunTune.VMAX);
                 Draw.rect(g, 4, 29, barW, 4, 'rgba(0,0,0,0.5)');
                 Draw.rect(g, 4, 29, Math.round(barW * ratio), 4, ratio > 0.85 ? '#ff5050' : ratio > 0.6 ? '#ffd95c' : '#60e060');
                 // 순위 표시

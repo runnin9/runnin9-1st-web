@@ -11,7 +11,7 @@ const LongJump = {
     actionLabel: 'JUMP',
 
     TUNE: {
-        GAIN: 1.55, SAME_BTN: 0.7, DRAG: 1.2, VMAX: 11.6, PPM: 12,
+        PPM: 12,
         BOARD: 40,            // 파울 라인 위치 (m). 발구름판은 그 앞 1m
         BOARD_W: 1.0,         // 발구름판 폭 (m)
         GRACE: 0.15,          // 파울 라인을 살짝 넘긴 경우 봐주는 거리 (m)
@@ -74,8 +74,7 @@ const LongJump = {
                     if (st.t > 1.2) { st.phase = 'run'; st.t = 0; st.msg = ''; Sound.beep(); }
                 } else if (st.phase === 'run') {
                     st.timer += dt;
-                    p.v = Math.max(0, p.v - p.v * T.DRAG * dt);
-                    p.pos += p.v * dt; p.anim += p.v * dt * 1.5;
+                    RunTune.step(p, dt);
                     if (p.pos > T.BOARD + 0.6) foul();
                     else if (st.timer > 20) foul();
                 } else if (st.phase === 'hold') {
@@ -106,9 +105,7 @@ const LongJump = {
                 const p = st.p;
                 if (st.phase !== 'run') return;
                 if (name === 'runL' || name === 'runR') {
-                    const gain = name !== p.lastBtn ? T.GAIN : T.GAIN * T.SAME_BTN;
-                    p.v = Math.min(T.VMAX, p.v + gain);
-                    p.lastBtn = name; p.taps++;
+                    RunTune.tap(p, name);
                     Sound.step();
                 } else if (name === 'action') {
                     if (p.v < 1) return;
@@ -184,7 +181,7 @@ const LongJump = {
                 Font.text(g, 'TRY ' + st.attempt + '/' + ev.attempts, W / 2, 2, { scale: 2, color: '#ffffff', align: 'center' });
                 const kmh = Math.round(p.v * 3.6);
                 Font.text(g, 'SPEED ' + String(kmh).padStart(2, '0') + ' KM/H', 4, 20, { color: '#ffffff' });
-                const ratio = Math.min(1, p.v / T.VMAX);
+                const ratio = Math.min(1, p.v / RunTune.VMAX);
                 Draw.rect(g, 4, 29, 60, 4, 'rgba(0,0,0,0.5)');
                 Draw.rect(g, 4, 29, Math.round(60 * ratio), 4, ratio > 0.85 ? '#ff5050' : ratio > 0.6 ? '#ffd95c' : '#60e060');
                 // 이번 종목 기록들

@@ -69,6 +69,29 @@ const Athlete = (() => {
     return { PAL, POSE, runPose, draw };
 })();
 
+// ---------- 달리기 조작감 (모든 종목 공용) ----------
+// 속도는 두드릴 때마다 GAIN 만큼 붙고, 초당 DRAG 비율로 줄어듭니다.
+// 안정 속도 = GAIN x (초당 연타 수) / DRAG. 최고 속도까지 약 2초가 걸립니다.
+const RunTune = {
+    GAIN: 0.84,          // 한 번 두드릴 때 붙는 속도 (m/s)
+    SAME_BTN: 0.7,       // 같은 패드를 연속으로 두드릴 때의 효율
+    DRAG: 0.6,           // 초당 감속 비율
+    VMAX: 11.6,          // 최고 속도 (m/s)
+    // 연타 입력 처리: 속도를 올리고 새 속도를 돌려줌
+    tap(p, name) {
+        const gain = name !== p.lastBtn ? this.GAIN : this.GAIN * this.SAME_BTN;
+        p.v = Math.min(this.VMAX, p.v + gain);
+        p.lastBtn = name; p.taps = (p.taps || 0) + 1;
+        return p.v;
+    },
+    // 매 프레임 감속과 이동
+    step(p, dt) {
+        p.v = Math.max(0, p.v - p.v * this.DRAG * dt);
+        p.pos += p.v * dt;
+        p.anim += p.v * dt * 1.5;
+    }
+};
+
 // ---------- 경기장 ----------
 const Stadium = (() => {
     const CROWD = ['#8a8070', '#8a3a30', '#2c4480', '#9a8a40', '#3a6a48', '#9a9aa0', '#8a5a40', '#5a3a70'];
