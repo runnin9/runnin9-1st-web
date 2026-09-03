@@ -139,11 +139,12 @@ const Engine = (() => {
     }
     function layoutPads() {
         const W = S.W, H = S.H, top = Math.floor(H * 0.62);
-        const a = Math.floor(W * 0.3), b = Math.floor(W * 0.6);
+        // RUN 패드는 양쪽 끝(양 엄지), 점프/던지기 패드는 가운데
+        const a = Math.floor(W * 0.28), b = Math.floor(W * 0.72);
         pads = {
             runL:   { x: 0, y: top, w: a, h: H - top, label: 'RUN' },
-            runR:   { x: a, y: top, w: b - a, h: H - top, label: 'RUN' },
-            action: { x: b, y: top, w: W - b, h: H - top, label: '' }
+            action: { x: a, y: top, w: b - a, h: H - top, label: '' },
+            runR:   { x: b, y: top, w: W - b, h: H - top, label: 'RUN' }
         };
     }
     window.addEventListener('resize', resize);
