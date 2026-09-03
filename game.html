@@ -92,6 +92,41 @@ window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 100));
 resize();
 
+// ---------- 네이티브 앱(Capacitor) 연동 ----------
+// 웹 브라우저에서는 window.Capacitor 가 없으므로 모든 호출이 조용히 건너뜁니다.
+const cap = window.Capacitor;
+const isNative = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
+const plugin = name => (isNative && cap.Plugins && cap.Plugins[name]) || null;
+
+function vibrate(pattern) {
+    const haptics = plugin('Haptics');
+    if (haptics) {
+        try { haptics.vibrate({ duration: 200 }); } catch (e) {}
+    } else if (navigator.vibrate) {
+        try { navigator.vibrate(pattern); } catch (e) {}
+    }
+}
+function haptic() {
+    const haptics = plugin('Haptics');
+    if (haptics) { try { haptics.impact({ style: 'LIGHT' }); } catch (e) {} }
+}
+(function setupNative() {
+    if (!isNative) return;
+    const statusBar = plugin('StatusBar');
+    if (statusBar) { try { statusBar.hide(); } catch (e) {} }
+    const app = plugin('App');
+    if (app) {
+        try {
+            // 안드로이드 뒤로가기: 플레이 중이면 일시정지, 그 외에는 타이틀로, 타이틀에서는 앱 종료
+            app.addListener('backButton', () => {
+                if (G.state === 'play') G.state = 'pause';
+                else if (G.state === 'pause' || G.state === 'over') toTitle();
+                else app.exitApp();
+            });
+        } catch (e) {}
+    }
+})();
+
 // ---------- 사운드 ----------
 let actx = null;
 function ensureAudio() {
@@ -126,6 +161,12 @@ function sfx(name) {
 }
 
 // ---------- 게임 흐름 ----------
+function toTitle() {
+    G.state = 'title';
+    G.obstacles = []; G.dist = 0; G.score = 0; G.speed = 5;
+    P.y = GROUND - P.h; P.vy = 0; P.onGround = true; P.jumps = 0;
+}
+
 function start() {
     G.state = 'play';
     G.speed = 5; G.dist = 0; G.score = 0;
@@ -140,7 +181,7 @@ function die(now) {
     G.newBest = G.score > G.best;
     if (G.newBest) { G.best = G.score; saveBest(G.best); }
     sfx('die');
-    if (navigator.vibrate) { try { navigator.vibrate([80, 40, 120]); } catch (e) {} }
+    vibrate([80, 40, 120]);
 }
 
 function spawn() {
@@ -217,7 +258,7 @@ function onTap(now) {
     if (G.state === 'pause') { G.state = 'play'; last = performance.now(); return; }
     if (G.state === 'over') { if (now - G.overAt > 700) start(); return; }
     if (P.onGround) {
-        P.vy = -JUMP; P.onGround = false; P.jumps = 1; sfx('jump');
+        P.vy = -JUMP; P.onGround = false; P.jumps = 1; sfx('jump'); haptic();
     } else if (P.jumps < 2) {
         P.vy = -JUMP * 0.92; P.jumps = 2; sfx('jump2');
     }
@@ -482,7 +523,7 @@ function loop(now) {
 requestAnimationFrame(loop);
 
 // 테스트/디버그용 (콘솔에서 접근 가능)
-window.__runnin9 = { G, P, start, onTap };
+window.__runnin9 = { G, P, start, onTap, toTitle };
 })();
 </script>
 </body>

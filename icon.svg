@@ -1,14 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="28" fill="#1a1b2e"/>
-  <rect x="0" y="96" width="128" height="32" fill="#70be5c"/>
-  <rect x="0" y="106" width="128" height="22" fill="#9a7048"/>
-  <circle cx="98" cy="30" r="14" fill="#ffd95c"/>
-  <g transform="translate(40 34)">
-    <path d="M14 46 L6 62 M30 46 L38 62" stroke="#2b2d42" stroke-width="7" stroke-linecap="round"/>
-    <rect x="4" y="18" width="36" height="32" rx="10" fill="#ff7a45"/>
-    <rect x="0" y="24" width="44" height="7" rx="3" fill="#ffd95c"/>
-    <circle cx="22" cy="12" r="15" fill="#ffd9b3"/>
-    <path d="M7 12 A15 15 0 0 1 37 12 Z" fill="#2b2d42"/>
-    <circle cx="29" cy="15" r="3" fill="#2b2d42"/>
+  <defs><clipPath id="r"><rect width="128" height="128" rx="28"/></clipPath></defs>
+  <g clip-path="url(#r)">
+    <rect width="128" height="128" fill="#1a1b2e"/>
+    <rect x="0" y="96" width="128" height="32" fill="#70be5c"/>
+    <rect x="0" y="106" width="128" height="22" fill="#9a7048"/>
+    <circle cx="98" cy="30" r="14" fill="#ffd95c"/>
+    <g transform="translate(40 34)">
+      <path d="M14 46 L6 62 M30 46 L38 62" stroke="#2b2d42" stroke-width="7" stroke-linecap="round"/>
+      <rect x="4" y="18" width="36" height="32" rx="10" fill="#ff7a45"/>
+      <rect x="0" y="24" width="44" height="7" rx="3" fill="#ffd95c"/>
+      <circle cx="22" cy="12" r="15" fill="#ffd9b3"/>
+      <path d="M7 12 A15 15 0 0 1 37 12 Z" fill="#2b2d42"/>
+      <circle cx="29" cy="15" r="3" fill="#2b2d42"/>
+    </g>
   </g>
 </svg>
