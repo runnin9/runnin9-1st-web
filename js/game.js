@@ -4,7 +4,7 @@
 // 종목 목록. todo: true 인 종목은 아직 준비 중
 const EVENTS = [
     Dash100,
-    { id: 'longjump', name: 'LONG JUMP', nameKr: '멀리뛰기', todo: true, format: v => v.toFixed(2), unit: 'M' },
+    LongJump,
     { id: 'javelin', name: 'JAVELIN', nameKr: '창던지기', todo: true, format: v => v.toFixed(2), unit: 'M' },
     { id: 'hurdles', name: '110M HURDLES', nameKr: '110m 허들', todo: true, format: v => v.toFixed(2), unit: 'SEC', lowerIsBetter: true },
     { id: 'hammer', name: 'HAMMER THROW', nameKr: '해머던지기', todo: true, format: v => v.toFixed(2), unit: 'M' },

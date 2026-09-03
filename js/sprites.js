@@ -26,7 +26,10 @@ const Athlete = (() => {
         crouch: { hipH: 6, lean: 78, thighL: 75, shinL: -15, thighR: -35, shinR: -110, armL: -5, foreL: -5, armR: -8, foreR: -8 },
         set:    { hipH: 10, lean: 85, thighL: 55, shinL: 10, thighR: -30, shinR: -45, armL: 0, foreL: 0, armR: -4, foreR: -4 },
         win:    { hipH: 10, lean: -5, thighL: 6, shinL: 6, thighR: -6, shinR: -6, armL: 150, foreL: 175, armR: -150, foreR: -175 },
-        fall:   { hipH: 3, lean: 95, thighL: 20, shinL: 10, thighR: -10, shinR: -20, armL: 60, foreL: 90, armR: 40, foreR: 70 }
+        fall:   { hipH: 3, lean: 95, thighL: 20, shinL: 10, thighR: -10, shinR: -20, armL: 60, foreL: 90, armR: 40, foreR: 70 },
+        takeoff:{ hipH: 10, lean: 5, thighL: 70, shinL: 10, thighR: -25, shinR: -35, armL: 120, foreL: 160, armR: -40, foreR: -20 },
+        fly:    { hipH: 10, lean: 10, thighL: 55, shinL: 35, thighR: 45, shinR: 25, armL: 150, foreL: 175, armR: 140, foreR: 170 },
+        land:   { hipH: 5, lean: 35, thighL: 75, shinL: 45, thighR: 70, shinR: 40, armL: 70, foreL: 80, armR: 60, foreR: 70 }
     };
 
     function draw(g, x, groundY, pose, pal, facing) {
@@ -88,42 +91,48 @@ const Stadium = (() => {
     L.trackBot = L.trackTop + L.laneH * L.lanes;
     L.groundY = i => L.trackTop + L.laneH * (i + 1) - 2;   // i번 레인의 발 위치
 
-    function draw(g, camX, W, H, opt) {
-        opt = opt || {};
-        const PPM = opt.ppm || 12;
-        // 하늘
+    // 하늘, 관중석, 난간, 잔디(트랙 위까지)
+    function drawBackdrop(g, camX, W) {
         g.fillStyle = '#5ab4f0'; g.fillRect(0, 0, W, L.standTop);
         g.fillStyle = '#7cc4f4'; g.fillRect(0, L.standTop - 6, W, 6);
-        // 관중석 (패럴랙스)
         const t = crowdTile();
         const off = ((Math.floor(camX * 0.5) % 256) + 256) % 256;
         for (let x = -off; x < W; x += 256) g.drawImage(t, x, L.standTop, 256, L.standBot - L.standTop);
         g.fillStyle = '#20243a'; g.fillRect(0, L.standTop, W, 2);
-        // 난간·잔디
         g.fillStyle = '#e8e8e8'; g.fillRect(0, L.standBot, W, 3);
         g.fillStyle = '#3c9a3c'; g.fillRect(0, L.standBot + 3, W, L.trackTop - L.standBot - 3);
         g.fillStyle = '#2e7d2e'; g.fillRect(0, L.trackTop - 2, W, 2);
-        // 트랙
+    }
+    // 트랙 아래 잔디
+    function drawGrassBelow(g, W, H) {
+        g.fillStyle = '#3c9a3c'; g.fillRect(0, L.trackBot, W, H - L.trackBot);
+        g.fillStyle = '#2e7d2e'; g.fillRect(0, L.trackBot + 1, W, 1);
+    }
+    // 레인이 있는 트랙과 거리 표시
+    function drawTrack(g, camX, W, opt) {
+        opt = opt || {};
+        const PPM = opt.ppm || 12, len = opt.length || 100;
         g.fillStyle = '#c2553e'; g.fillRect(0, L.trackTop, W, L.trackBot - L.trackTop);
         g.fillStyle = '#ffffff';
         for (let i = 0; i <= L.lanes; i++) g.fillRect(0, L.trackTop + i * L.laneH, W, 1);
-        // 거리 표시와 출발/결승선
         const start = Math.floor(camX / PPM / 10) * 10 - 10;
-        for (let m = Math.max(0, start); m <= (opt.length || 100); m += 10) {
+        for (let m = Math.max(0, start); m <= len; m += 10) {
             const x = Math.round(m * PPM - camX);
             if (x < -30 || x > W + 10) continue;
             g.fillStyle = 'rgba(255,255,255,0.55)';
             g.fillRect(x, L.trackTop, 1, L.trackBot - L.trackTop);
             Font.text(g, String(m), x + 3, L.trackTop + 2, { color: 'rgba(255,255,255,0.8)' });
         }
-        const sx = Math.round(0 - camX), fx = Math.round((opt.length || 100) * PPM - camX);
+        const sx = Math.round(0 - camX), fx = Math.round(len * PPM - camX);
         g.fillStyle = '#ffffff'; g.fillRect(sx - 1, L.trackTop, 2, L.trackBot - L.trackTop);
         g.fillRect(fx - 1, L.trackTop, 3, L.trackBot - L.trackTop);
         for (let y = L.trackTop; y < L.trackBot; y += 4) { g.fillStyle = '#222'; g.fillRect(fx + 2, y + ((y / 4) % 2 ? 2 : 0), 2, 2); }
-        // 트랙 아래 잔디
-        g.fillStyle = '#3c9a3c'; g.fillRect(0, L.trackBot, W, H - L.trackBot);
-        g.fillStyle = '#2e7d2e'; g.fillRect(0, L.trackBot + 1, W, 1);
+    }
+    function draw(g, camX, W, H, opt) {
+        drawBackdrop(g, camX, W);
+        drawTrack(g, camX, W, opt);
+        drawGrassBelow(g, W, H);
     }
 
-    return { L, draw };
+    return { L, draw, drawBackdrop, drawTrack, drawGrassBelow };
 })();
