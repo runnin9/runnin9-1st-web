@@ -1,10 +1,10 @@
-# Runnin9 앱 (iOS / Android)
+# '88 Athletics 앱 (iOS / Android)
 
 루트의 `game.html`(웹 게임)을 [Capacitor](https://capacitorjs.com)로 감싸서
 앱 스토어에 올릴 수 있는 네이티브 앱으로 만든 프로젝트입니다.
 
-- 앱 ID: `com.runnin9.runner`
-- 앱 이름: `Runnin9`
+- 앱 ID: `com.runnin9.athletics88`
+- 앱 이름: `'88 Athletics`
 - 게임 코드는 **루트의 `game.html` 한 곳**에서만 수정합니다. `npm run sync`가 `www/index.html`로 복사해 줍니다.
 
 ## 폴더 구조

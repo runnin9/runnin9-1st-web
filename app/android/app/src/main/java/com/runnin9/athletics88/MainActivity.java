@@ -1,4 +1,4 @@
-package com.runnin9.runner;
+package com.runnin9.athletics88;
 
 import com.getcapacitor.BridgeActivity;
 

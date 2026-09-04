@@ -1,8 +1,8 @@
 {
-  "name": "runnin9-runner-app",
+  "name": "athletics88-app",
   "version": "1.0.0",
   "private": true,
-  "description": "Runnin9 무한 달리기 - iOS/Android 앱 (Capacitor)",
+  "description": "'88 Athletics - iOS/Android 앱 (Capacitor)",
   "scripts": {
     "copy-web": "node scripts/copy-web.js",
     "sync": "npm run copy-web && cap sync",

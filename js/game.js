@@ -87,11 +87,11 @@ const Scenes = (() => {
                 // 달리는 선수 데모
                 const p = (t * 6) % (Math.PI * 2);
                 Athlete.draw(g, ((t * 45) % (S.W + 60)) - 30, Stadium.L.groundY(1), Athlete.runPose(p, 12), Athlete.PAL.player, 1);
-                Font.text(g, 'RUNNIN9', cx, cy - 46, { scale: 4, color: '#ffd95c', align: 'center' });
-                Font.text(g, 'ATHLETICS', cx, cy - 12, { scale: 2, color: '#ffffff', align: 'center' });
+                Font.text(g, "'88", cx, cy - 50, { scale: 5, color: '#ffd95c', align: 'center' });
+                Font.text(g, 'ATHLETICS', cx, cy - 10, { scale: 2, color: '#ffffff', align: 'center' });
                 Engine.kr(Lang.t('subtitle'), cx, cy + 6, { size: 9, color: '#c8d8ff' });
                 if (blink(t)) Font.text(g, 'TAP TO START', cx, cy + 48, { scale: 1, color: '#ffffff', align: 'center' });
-                Font.text(g, 'V0.1 PROTOTYPE', S.W - 3, S.H - 9, { color: 'rgba(255,255,255,0.5)', align: 'right' });
+                Font.text(g, 'V1.0', S.W - 3, S.H - 9, { color: 'rgba(255,255,255,0.5)', align: 'right' });
             }
         };
     }
@@ -100,7 +100,7 @@ const Scenes = (() => {
     function menu() {
         let t = 0;
         const items = () => [
-            { label: 'OLYMPIC MODE', kr: Lang.t('menu_olympic'), act: () => Game.startOlympic() },
+            { label: 'CHAMPIONSHIP', kr: Lang.t('menu_olympic'), act: () => Game.startOlympic() },
             { label: 'FREE MODE', kr: Game.freeUnlocked() ? Lang.t('menu_free') : Lang.t('menu_free_locked'), locked: !Game.freeUnlocked(), act: () => Engine.setScene(freeSelect()) },
             { label: 'RECORDS', kr: Lang.t('menu_records'), act: () => Engine.setScene(records()) },
             { label: 'SETTINGS', kr: Lang.t('menu_settings'), act: () => Engine.setScene(settings()) }

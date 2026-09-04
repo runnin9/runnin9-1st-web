@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Runnin9</string>
-    <string name="title_activity_main">Runnin9</string>
-    <string name="package_name">com.runnin9.runner</string>
-    <string name="custom_url_scheme">com.runnin9.runner</string>
+    <string name="app_name">\'88 Athletics</string>
+    <string name="title_activity_main">\'88 Athletics</string>
+    <string name="package_name">com.runnin9.athletics88</string>
+    <string name="custom_url_scheme">com.runnin9.athletics88</string>
 </resources>
