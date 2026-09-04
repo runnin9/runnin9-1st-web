@@ -7,7 +7,7 @@ const EVENTS = [
     LongJump,
     Javelin,
     Hurdles110,
-    { id: 'hammer', name: 'HAMMER THROW', nameKr: '해머던지기', todo: true, format: v => v.toFixed(2), unit: 'M' },
+    Hammer,
     { id: 'highjump', name: 'HIGH JUMP', nameKr: '높이뛰기', todo: true, format: v => v.toFixed(2), unit: 'M' }
 ];
 
@@ -164,10 +164,16 @@ const Scenes = (() => {
                 Font.text(g, 'EVENT ' + idx + ' / ' + EVENTS.length, cx, 10, { color: '#9ad0ff', align: 'center' });
                 Font.text(g, ev.name, cx, 24, { scale: 3, color: '#ffd95c', align: 'center' });
                 Engine.kr(ev.nameKr, cx, 50, { size: 11 });
-                Draw.panel(g, cx - 130, 68, 260, 58, 'rgba(0,0,0,0.55)', '#ffffff');
-                Font.text(g, 'QUALIFY  ' + ev.format(ev.qualify) + ' ' + ev.unit, cx, 74, { scale: 1, color: '#60ff60', align: 'center' });
-                Engine.kr('기준 기록을 넘지 못하면 탈락합니다', cx, 84, { size: 7, color: '#ffb0b0' });
-                (ev.hint || []).forEach((h, i) => Engine.kr(h, cx, 98 + i * 11, { size: 8, color: '#e8f0ff' }));
+                // 설명 박스: 글 폭을 재서 줄바꿈하고 줄 수에 맞춰 높이 결정
+                const pw = Math.min(S.W - 24, 340), pad = 10, hs = 8, lh = 11;
+                const lines = [];
+                (ev.hint || []).forEach(h => Engine.krWrap(h, hs, pw - pad * 2).forEach(l => lines.push(l)));
+                const ph = 30 + lines.length * lh;
+                const py = 64;
+                Draw.panel(g, cx - pw / 2, py, pw, ph, 'rgba(0,0,0,0.6)', '#ffffff');
+                Font.text(g, 'QUALIFY  ' + ev.format(ev.qualify) + ' ' + ev.unit, cx, py + 6, { scale: 1, color: '#60ff60', align: 'center' });
+                Engine.kr('기준 기록을 넘지 못하면 탈락합니다', cx, py + 15, { size: 7, color: '#ffb0b0' });
+                lines.forEach((l, i) => Engine.kr(l, cx, py + 28 + i * lh, { size: hs, color: '#e8f0ff' }));
                 if (blink(t)) Font.text(g, 'TAP TO START', cx, S.H - 40, { color: '#ffffff', align: 'center' });
                 const b = Game.best(ev);
                 if (b != null) Font.text(g, 'YOUR BEST ' + ev.format(b) + ' ' + ev.unit, cx, S.H - 22, { color: '#ffd95c', align: 'center' });

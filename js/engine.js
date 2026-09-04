@@ -215,6 +215,30 @@ const Engine = (() => {
 
     // ----- 한글 텍스트 (고해상도 레이어) -----
     function kr(str, x, y, o) { krQueue.push({ str, x, y, o: o || {} }); }
+    // 논리 픽셀 단위 글자 폭
+    function krWidth(str, size, bold) {
+        ctx.font = (bold === false ? '' : 'bold ') + (size || 10) * S.scale + 'px ' + KR_FONT;
+        return ctx.measureText(str).width / S.scale;
+    }
+    // maxW 안에 들어가도록 줄바꿈 (띄어쓰기 우선, 긴 단어는 글자 단위)
+    function krWrap(str, size, maxW, bold) {
+        const lines = [];
+        for (const para of String(str).split('\n')) {
+            let line = '';
+            for (const word of para.split(' ')) {
+                const cand = line ? line + ' ' + word : word;
+                if (krWidth(cand, size, bold) <= maxW) { line = cand; continue; }
+                if (line) lines.push(line);
+                line = '';
+                for (const ch of word) {
+                    if (krWidth(line + ch, size, bold) <= maxW) line += ch;
+                    else { lines.push(line); line = ch; }
+                }
+            }
+            lines.push(line);
+        }
+        return lines;
+    }
     function flushKr() {
         if (!krQueue.length) return;
         const s = S.scale;
@@ -288,5 +312,5 @@ const Engine = (() => {
     function isPortrait() { return S.portrait; }
     function currentScene() { return scene; }
 
-    return { S, g, pads: () => pads, setScene, currentScene, isPressed, setActionLabel, setLeftHanded, kr, start, isPortrait };
+    return { S, g, pads: () => pads, setScene, currentScene, isPressed, setActionLabel, setLeftHanded, kr, krWidth, krWrap, start, isPortrait };
 })();
