@@ -4,11 +4,10 @@
 'use strict';
 
 const HighJump = {
-    id: 'highjump', name: 'HIGH JUMP', nameKr: '높이뛰기',
+    id: 'highjump', name: 'HIGH JUMP',
     qualify: 2.15, wr: 2.45, lowerIsBetter: false,
     format: v => v.toFixed(2), unit: 'M',
     attempts: 3,
-    hint: ['RUN 연타로 달려서 바 앞 노란 구간에서 JUMP', '누르고 있으면 각도가 오릅니다. 높이뛰기는 60~70도가 좋습니다', '바보다 높이 넘으면 성공. 3번 안에 넘으면 통과, 넘을 때마다 바가 5cm 올라갑니다'],
     actionLabel: 'JUMP',
 
     TUNE: {
@@ -236,8 +235,8 @@ const HighJump = {
                     const sc = big ? 2 : 1, mw = Font.width(st.msg, sc);
                     Draw.panel(g, W / 2 - mw / 2 - 8, my + 4, mw + 16, sc * 7 + 8, 'rgba(0,0,0,0.65)', 'rgba(255,255,255,0.4)');
                     Font.text(g, st.msg, W / 2, my + 8, { scale: sc, color: bad ? '#ff5050' : big ? '#60ff60' : '#ffd95c', align: 'center' });
-                    if (big && st.result) Engine.kr(st.newBest ? '신기록! 바가 5cm 올라갑니다' : (Game.mode === 'olympic' && st.qualifiedNow ? '기준 통과!' : '성공! 바가 5cm 올라갑니다'), W / 2, my + 30, { size: 8, color: '#c0ffc0' });
-                    if (big && !st.result) Engine.kr(st.reason === 'run' ? '도약하지 않고 바를 지났습니다' : st.reason === 'short' ? '바 앞에 떨어졌습니다' : '바를 떨어뜨렸습니다 (' + (ev.attempts - st.misses) + '번 남음)', W / 2, my + 30, { size: 8, color: '#ffb0b0' });
+                    if (big && st.result) Engine.kr(st.newBest ? Lang.t('hj_record') : (Game.mode === 'olympic' && st.qualifiedNow ? Lang.t('pass') : Lang.t('hj_clear')), W / 2, my + 30, { size: 8, color: '#c0ffc0' });
+                    if (big && !st.result) Engine.kr(st.reason === 'run' ? Lang.t('hj_run') : st.reason === 'short' ? Lang.t('hj_short') : Lang.t('hj_hit', { n: ev.attempts - st.misses }), W / 2, my + 30, { size: 8, color: '#ffb0b0' });
                 }
             }
         };

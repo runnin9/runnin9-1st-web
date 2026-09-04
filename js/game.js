@@ -17,6 +17,9 @@ const Game = {
     init() {
         this.data = Store.load();
         this.data.records = this.data.records || {};
+        this.data.settings = this.data.settings || {};
+        Lang.set(this.data.settings.lang || Lang.detect());
+        Engine.setLeftHanded(!!this.data.settings.leftHanded);
         Native.init(exit => this.onBack(exit));
         Engine.start();
         Engine.setScene(Scenes.title());
@@ -86,7 +89,7 @@ const Scenes = (() => {
                 Athlete.draw(g, ((t * 45) % (S.W + 60)) - 30, Stadium.L.groundY(1), Athlete.runPose(p, 12), Athlete.PAL.player, 1);
                 Font.text(g, 'RUNNIN9', cx, cy - 46, { scale: 4, color: '#ffd95c', align: 'center' });
                 Font.text(g, 'ATHLETICS', cx, cy - 12, { scale: 2, color: '#ffffff', align: 'center' });
-                Engine.kr('레트로 육상 6종 경기', cx, cy + 6, { size: 9, color: '#c8d8ff' });
+                Engine.kr(Lang.t('subtitle'), cx, cy + 6, { size: 9, color: '#c8d8ff' });
                 if (blink(t)) Font.text(g, 'TAP TO START', cx, cy + 48, { scale: 1, color: '#ffffff', align: 'center' });
                 Font.text(g, 'V0.1 PROTOTYPE', S.W - 3, S.H - 9, { color: 'rgba(255,255,255,0.5)', align: 'right' });
             }
@@ -97,18 +100,19 @@ const Scenes = (() => {
     function menu() {
         let t = 0;
         const items = () => [
-            { label: 'OLYMPIC MODE', kr: '6종목을 차례로 도전', act: () => Game.startOlympic() },
-            { label: 'FREE MODE', kr: Game.freeUnlocked() ? '원하는 종목만 연습' : '올림픽 모드를 먼저 완주하세요', locked: !Game.freeUnlocked(), act: () => Engine.setScene(freeSelect()) },
-            { label: 'RECORDS', kr: '종목별 최고 기록', act: () => Engine.setScene(records()) }
+            { label: 'OLYMPIC MODE', kr: Lang.t('menu_olympic'), act: () => Game.startOlympic() },
+            { label: 'FREE MODE', kr: Game.freeUnlocked() ? Lang.t('menu_free') : Lang.t('menu_free_locked'), locked: !Game.freeUnlocked(), act: () => Engine.setScene(freeSelect()) },
+            { label: 'RECORDS', kr: Lang.t('menu_records'), act: () => Engine.setScene(records()) },
+            { label: 'SETTINGS', kr: Lang.t('menu_settings'), act: () => Engine.setScene(settings()) }
         ];
-        const rowY = i => S.H / 2 - 34 + i * 30;
+        const rowY = i => S.H / 2 - 48 + i * 26;
         return {
             enter() { t = 0; },
             update(dt) { t += dt; },
             onPress(name, x, y) {
                 const list = items();
                 for (let i = 0; i < list.length; i++) {
-                    if (y >= rowY(i) - 6 && y < rowY(i) + 24) {
+                    if (y >= rowY(i) - 5 && y < rowY(i) + 21) {
                         if (list[i].locked) { Sound.fail(); return; }
                         Sound.select(); list[i].act(); return;
                     }
@@ -119,7 +123,7 @@ const Scenes = (() => {
                 Font.text(g, 'SELECT MODE', S.W / 2, 14, { scale: 2, color: '#ffd95c', align: 'center' });
                 items().forEach((it, i) => {
                     const y = rowY(i);
-                    Draw.panel(g, S.W / 2 - 110, y - 6, 220, 26, 'rgba(0,0,0,0.5)', it.locked ? 'rgba(255,255,255,0.25)' : '#ffffff');
+                    Draw.panel(g, S.W / 2 - 110, y - 5, 220, 24, 'rgba(0,0,0,0.5)', it.locked ? 'rgba(255,255,255,0.25)' : '#ffffff');
                     Font.text(g, (it.locked ? '' : '> ') + it.label + (it.locked ? '  (LOCKED)' : ''), S.W / 2 - 100, y, { color: it.locked ? '#888' : '#ffffff' });
                     Engine.kr(it.kr, S.W / 2 - 100, y + 9, { size: 7, align: 'left', color: it.locked ? '#999' : '#c8d8ff' });
                 });
@@ -163,16 +167,16 @@ const Scenes = (() => {
                 const idx = EVENTS.indexOf(ev) + 1;
                 Font.text(g, 'EVENT ' + idx + ' / ' + EVENTS.length, cx, 10, { color: '#9ad0ff', align: 'center' });
                 Font.text(g, ev.name, cx, 24, { scale: 3, color: '#ffd95c', align: 'center' });
-                Engine.kr(ev.nameKr, cx, 50, { size: 11 });
+                Engine.kr(Lang.evName(ev), cx, 50, { size: 11 });
                 // 설명 박스: 글 폭을 재서 줄바꿈하고 줄 수에 맞춰 높이 결정
                 const pw = Math.min(S.W - 24, 340), pad = 10, hs = 8, lh = 11;
                 const lines = [];
-                (ev.hint || []).forEach(h => Engine.krWrap(h, hs, pw - pad * 2).forEach(l => lines.push(l)));
+                Lang.evHint(ev).forEach(h => Engine.krWrap(h, hs, pw - pad * 2).forEach(l => lines.push(l)));
                 const ph = 30 + lines.length * lh;
                 const py = 64;
                 Draw.panel(g, cx - pw / 2, py, pw, ph, 'rgba(0,0,0,0.6)', '#ffffff');
                 Font.text(g, 'QUALIFY  ' + ev.format(ev.qualify) + ' ' + ev.unit, cx, py + 6, { scale: 1, color: '#60ff60', align: 'center' });
-                Engine.kr('기준 기록을 넘지 못하면 탈락합니다', cx, py + 15, { size: 7, color: '#ffb0b0' });
+                Engine.kr(Lang.t('intro_qualify'), cx, py + 15, { size: 7, color: '#ffb0b0' });
                 lines.forEach((l, i) => Engine.kr(l, cx, py + 28 + i * lh, { size: hs, color: '#e8f0ff' }));
                 if (blink(t)) Font.text(g, 'TAP TO START', cx, S.H - 40, { color: '#ffffff', align: 'center' });
                 const b = Game.best(ev);
@@ -197,7 +201,7 @@ const Scenes = (() => {
                 Font.text(g, 'BEST ' + (b == null ? '---' : ev.format(b)) + ' ' + ev.unit + '   WR ' + ev.format(ev.wr) + ' ' + ev.unit, cx, 70, { color: '#c8d8ff', align: 'center' });
                 if (r.newBest && blink(t)) Font.text(g, 'NEW RECORD!', cx, 86, { scale: 2, color: '#ffd95c', align: 'center' });
                 Font.text(g, r.qualified ? 'QUALIFIED!' : 'NOT QUALIFIED', cx, 108, { scale: 2, color: r.qualified ? '#60ff60' : '#ff5050', align: 'center' });
-                Engine.kr(r.qualified ? '기준 통과! 다음 종목으로' : '기준 기록 ' + ev.format(ev.qualify) + ' ' + ev.unit + ' 미달', cx, 126, { size: 8 });
+                Engine.kr(r.qualified ? Lang.t('result_pass') : Lang.t('result_fail', { q: ev.format(ev.qualify), u: ev.unit }), cx, 126, { size: 8 });
                 if (t > 0.6 && blink(t)) Font.text(g, 'TAP TO CONTINUE', cx, S.H - 22, { color: '#ffffff', align: 'center' });
             }
         };
@@ -215,7 +219,7 @@ const Scenes = (() => {
                 const cx = S.W / 2;
                 Athlete.draw(g, cx, S.H / 2 + 40, Athlete.POSE.fall, Athlete.PAL.player, 1);
                 Font.text(g, 'GAME OVER', cx, 34, { scale: 4, color: '#ff5050', align: 'center' });
-                Engine.kr(ev.nameKr + ' 기준 기록 미달', cx, 70, { size: 10 });
+                Engine.kr(Lang.t('over_reason', { ev: Lang.evName(ev) }), cx, 70, { size: 10 });
                 Font.text(g, 'YOUR ' + ev.format(r.value) + '   QUALIFY ' + ev.format(ev.qualify), cx, 90, { color: '#ffffff', align: 'center' });
                 if (t > 0.8 && blink(t)) Font.text(g, 'TAP TO TITLE', cx, S.H - 22, { color: '#ffffff', align: 'center' });
             }
@@ -235,8 +239,8 @@ const Scenes = (() => {
                 Font.text(g, 'NEXT EVENT', cx, 24, { scale: 2, color: '#9ad0ff', align: 'center' });
                 Font.text(g, ev.name, cx, 48, { scale: 3, color: '#ffd95c', align: 'center' });
                 Font.text(g, 'COMING SOON', cx, 80, { scale: 2, color: '#ffffff', align: 'center' });
-                Engine.kr(ev.nameKr + ' 종목은 준비 중입니다', cx, 100, { size: 9 });
-                Engine.kr('자유 모드가 열렸습니다!', cx, 114, { size: 9, color: '#60ff60' });
+                Engine.kr(Lang.t('soon', { ev: Lang.evName(ev) }), cx, 100, { size: 9 });
+                Engine.kr(Lang.t('soon_free'), cx, 114, { size: 9, color: '#60ff60' });
                 if (t > 0.6 && blink(t)) Font.text(g, 'TAP TO TITLE', cx, S.H - 22, { color: '#ffffff', align: 'center' });
             }
         };
@@ -254,7 +258,7 @@ const Scenes = (() => {
                 const cx = S.W / 2;
                 Athlete.draw(g, cx, S.H / 2 + 40, Athlete.POSE.win, Athlete.PAL.player, 1);
                 Font.text(g, 'ALL CLEAR!', cx, 30, { scale: 4, color: '#ffd95c', align: 'center' });
-                Engine.kr('6종목을 모두 통과했습니다! 자유 모드가 열렸습니다', cx, 66, { size: 9 });
+                Engine.kr(Lang.t('clear_all'), cx, 66, { size: 9 });
                 if (t > 0.8 && blink(t)) Font.text(g, 'TAP TO TITLE', cx, S.H - 22, { color: '#ffffff', align: 'center' });
             }
         };
@@ -278,7 +282,54 @@ const Scenes = (() => {
         };
     }
 
-    return { title, menu, freeSelect, intro, result, gameOver, comingSoon, clear, records };
+    // 설정: 왼손잡이, 언어
+    function settings() {
+        const rowY = i => 40 + i * 30;
+        const save = () => { Game.save(); };
+        return {
+            onPress(name, x, y) {
+                if (y > S.H - 22) { Sound.select(); Engine.setScene(menu()); return; }
+                if (y >= rowY(0) - 6 && y < rowY(0) + 22) {
+                    const v = !Engine.S.leftHanded;
+                    Engine.setLeftHanded(v); Game.data.settings.leftHanded = v; save(); Sound.select();
+                } else if (y >= rowY(1) - 6 && y < rowY(1) + 22) {
+                    Lang.next(x < S.W / 2 ? -1 : 1); Game.data.settings.lang = Lang.get(); save(); Sound.select();
+                }
+            },
+            draw(g) {
+                bg(g, 0);
+                const cx = S.W / 2;
+                Font.text(g, 'SETTINGS', cx, 12, { scale: 2, color: '#ffd95c', align: 'center' });
+                Engine.kr(Lang.t('set_title'), cx, 28, { size: 8, color: '#c8d8ff' });
+                // 왼손잡이
+                let y = rowY(0);
+                Draw.panel(g, 20, y - 6, S.W - 40, 26, 'rgba(0,0,0,0.5)', '#ffffff');
+                Engine.kr(Lang.t('set_left'), 30, y - 1, { size: 9, align: 'left' });
+                Engine.kr(Lang.t('set_left_desc'), 30, y + 10, { size: 7, align: 'left', color: '#c8d8ff' });
+                const on = Engine.S.leftHanded;
+                Draw.panel(g, S.W - 70, y - 2, 44, 18, on ? '#2f8f4a' : 'rgba(255,255,255,0.15)', '#ffffff');
+                Engine.kr(on ? Lang.t('on') : Lang.t('off'), S.W - 48, y + 1, { size: 9 });
+                // 언어
+                y = rowY(1);
+                Draw.panel(g, 20, y - 6, S.W - 40, 26, 'rgba(0,0,0,0.5)', '#ffffff');
+                Engine.kr(Lang.t('set_lang'), 30, y + 3, { size: 9, align: 'left' });
+                Font.text(g, '<', S.W - 118, y + 4, { color: '#ffffff' });
+                Engine.kr(Lang.label(), S.W - 70, y + 1, { size: 9 });
+                Font.text(g, '>', S.W - 28, y + 4, { color: '#ffffff' });
+                // 패드 미리보기
+                y = rowY(2) + 4;
+                const pads = Engine.pads();
+                const scale = 0.32, ox = cx - S.W * scale / 2, oy = y + 4;
+                for (const k in pads) {
+                    const p = pads[k];
+                    Draw.panel(g, ox + p.x * scale, oy + (p.y - S.H * 0.6) * scale, p.w * scale, p.h * scale, k === 'action' ? 'rgba(255,217,92,0.5)' : 'rgba(255,255,255,0.25)', '#ffffff');
+                }
+                Font.text(g, '< BACK', cx, S.H - 14, { color: '#ffffff', align: 'center' });
+            }
+        };
+    }
+
+    return { title, menu, freeSelect, intro, result, gameOver, comingSoon, clear, records, settings };
 })();
 
 Game.init();

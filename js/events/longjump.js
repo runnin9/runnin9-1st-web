@@ -3,11 +3,10 @@
 'use strict';
 
 const LongJump = {
-    id: 'longjump', name: 'LONG JUMP', nameKr: '멀리뛰기',
+    id: 'longjump', name: 'LONG JUMP',
     qualify: 6.50, wr: 8.90, lowerIsBetter: false,
     format: v => v.toFixed(2), unit: 'M',
     attempts: 3,
-    hint: ['RUN 연타로 달려서 흰 발구름판 위에서 JUMP', 'JUMP 를 누르고 있으면 각도가 올라갑니다. 45도쯤에서 떼세요', '판을 지나서 뛰면 FOUL. 기회는 3번'],
     actionLabel: 'JUMP',
 
     TUNE: {
@@ -215,8 +214,8 @@ const LongJump = {
                     const sc = 2, mw = Font.width(st.msg, sc);
                     Draw.panel(g, W / 2 - mw / 2 - 8, my + 4, mw + 16, 22, 'rgba(0,0,0,0.65)', 'rgba(255,255,255,0.4)');
                     Font.text(g, st.msg, W / 2, my + 8, { scale: sc, color: isFoul ? '#ff5050' : (big && st.qualifiedNow) ? '#60ff60' : '#ffd95c', align: 'center' });
-                    if (big && !isFoul) Engine.kr(st.qualifiedNow ? (st.newBest ? '신기록! 기준 통과' : '기준 통과!') : '기준 ' + ev.format(ev.qualify) + 'm 미달', W / 2, my + 30, { size: 8, color: st.qualifiedNow ? '#c0ffc0' : '#ffb0b0' });
-                    if (isFoul) Engine.kr('파울! 발구름판을 넘었습니다', W / 2, my + 30, { size: 8, color: '#ffb0b0' });
+                    if (big && !isFoul) Engine.kr(st.qualifiedNow ? (st.newBest ? Lang.t('new_record_pass') : Lang.t('pass')) : Lang.t('fail_q', { q: ev.format(ev.qualify) }), W / 2, my + 30, { size: 8, color: st.qualifiedNow ? '#c0ffc0' : '#ffb0b0' });
+                    if (isFoul) Engine.kr(Lang.t('foul_board'), W / 2, my + 30, { size: 8, color: '#ffb0b0' });
                 }
             }
         };

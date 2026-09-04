@@ -4,11 +4,10 @@
 'use strict';
 
 const Hammer = {
-    id: 'hammer', name: 'HAMMER THROW', nameKr: '해머던지기',
+    id: 'hammer', name: 'HAMMER THROW',
     qualify: 55.00, wr: 86.74, lowerIsBetter: false,
     format: v => v.toFixed(2), unit: 'M',
     attempts: 3,
-    hint: ['RUN 연타로 회전 속도를 올리세요 (게이지가 빨강이면 최고)', 'GO 가 켜지는 순간 THROW 를 누르세요. 해머 방향이 그때 정해집니다', '누르고 있으면 각도가 오릅니다. 45도에서 떼세요. 기회는 3번'],
     actionLabel: 'THROW',
 
     TUNE: {
@@ -272,8 +271,8 @@ const Hammer = {
                     const sc = 2, mw = Font.width(st.msg, sc);
                     Draw.panel(g, W / 2 - mw / 2 - 8, my + 4, mw + 16, 22, 'rgba(0,0,0,0.65)', 'rgba(255,255,255,0.4)');
                     Font.text(g, st.msg, W / 2, my + 8, { scale: sc, color: isFoul ? '#ff5050' : (big && st.qualifiedNow) ? '#60ff60' : '#ffd95c', align: 'center' });
-                    if (big && !isFoul) Engine.kr(st.qualifiedNow ? (st.newBest ? '신기록! 기준 통과' : '기준 통과!') : '기준 ' + ev.format(ev.qualify) + 'm 미달', W / 2, my + 30, { size: 8, color: st.qualifiedNow ? '#c0ffc0' : '#ffb0b0' });
-                    if (isFoul) Engine.kr(st.foulReason === 'time' ? '파울! 시간 초과' : '파울! 해머가 케이지에 맞았습니다', W / 2, my + 30, { size: 8, color: '#ffb0b0' });
+                    if (big && !isFoul) Engine.kr(st.qualifiedNow ? (st.newBest ? Lang.t('new_record_pass') : Lang.t('pass')) : Lang.t('fail_q', { q: ev.format(ev.qualify) }), W / 2, my + 30, { size: 8, color: st.qualifiedNow ? '#c0ffc0' : '#ffb0b0' });
+                    if (isFoul) Engine.kr(st.foulReason === 'time' ? Lang.t('foul_time') : Lang.t('foul_cage'), W / 2, my + 30, { size: 8, color: '#ffb0b0' });
                 }
             }
         };

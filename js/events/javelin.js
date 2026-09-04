@@ -4,11 +4,10 @@
 'use strict';
 
 const Javelin = {
-    id: 'javelin', name: 'JAVELIN', nameKr: '창던지기',
+    id: 'javelin', name: 'JAVELIN',
     qualify: 62.00, wr: 98.48, lowerIsBetter: false,
     format: v => v.toFixed(2), unit: 'M',
     attempts: 3,
-    hint: ['RUN 연타로 달리다 빨간 선 2m 앞(노란 표시)에서 THROW', '누르면 선수가 멈춰 서고 누르는 동안 각도가 오릅니다', '선을 넘기 전에 떼야 합니다. 45도쯤이 최적. 기회는 3번'],
     actionLabel: 'THROW',
 
     TUNE: {
@@ -242,8 +241,8 @@ const Javelin = {
                     const sc = 2, mw = Font.width(st.msg, sc);
                     Draw.panel(g, W / 2 - mw / 2 - 8, my + 4, mw + 16, 22, 'rgba(0,0,0,0.65)', 'rgba(255,255,255,0.4)');
                     Font.text(g, st.msg, W / 2, my + 8, { scale: sc, color: isFoul ? '#ff5050' : (big && st.qualifiedNow) ? '#60ff60' : '#ffd95c', align: 'center' });
-                    if (big && !isFoul) Engine.kr(st.qualifiedNow ? (st.newBest ? '신기록! 기준 통과' : '기준 통과!') : '기준 ' + ev.format(ev.qualify) + 'm 미달', W / 2, my + 30, { size: 8, color: st.qualifiedNow ? '#c0ffc0' : '#ffb0b0' });
-                    if (isFoul) Engine.kr('파울! 선을 넘었습니다', W / 2, my + 30, { size: 8, color: '#ffb0b0' });
+                    if (big && !isFoul) Engine.kr(st.qualifiedNow ? (st.newBest ? Lang.t('new_record_pass') : Lang.t('pass')) : Lang.t('fail_q', { q: ev.format(ev.qualify) }), W / 2, my + 30, { size: 8, color: st.qualifiedNow ? '#c0ffc0' : '#ffb0b0' });
+                    if (isFoul) Engine.kr(Lang.t('foul_line'), W / 2, my + 30, { size: 8, color: '#ffb0b0' });
                 }
             }
         };

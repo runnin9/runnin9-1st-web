@@ -3,13 +3,12 @@
 'use strict';
 
 const Dash100 = {
-    id: 'dash100', name: '100M DASH', nameKr: '100m 달리기',
+    id: 'dash100', name: '100M DASH',
     qualify: 11.50,          // 기준 기록 (초). 넘지 못하면 게임 오버
     wr: 9.90,                // 표시용 세계 기록
     lowerIsBetter: true,
     format: v => v.toFixed(2),
     unit: 'SEC',
-    hint: ['RUN 패드 두 개를 양손 엄지로 번갈아 두드리세요', '출발 총성 전에 누르면 부정 출발입니다'],
     actionLabel: '',
 
     // ----- 조작감 튜닝 상수 -----
@@ -120,9 +119,9 @@ const Dash100 = {
                     Font.text(g, 'TIME ' + ev.format(st.player.time), W / 2, my + 5, { scale: 2, color: '#ffffff', align: 'center' });
                     const line = st.qualified ? (st.newBest ? 'NEW RECORD!' : 'QUALIFIED!') : 'FAILED';
                     Font.text(g, line, W / 2, my + 24, { scale: 2, color: st.qualified ? '#60ff60' : '#ff5050', align: 'center' });
-                    Engine.kr(st.qualified ? (st.newBest ? '신기록!' : '기준 통과!') : '기준 기록 미달', W / 2, my + 41, { size: 8 });
+                    Engine.kr(st.qualified ? (st.newBest ? Lang.t('new_record') : Lang.t('pass')) : Lang.t('fail'), W / 2, my + 41, { size: 8 });
                 }
-                if (st.phase === 'false') Engine.kr('부정 출발! 총성 후에 두드리세요', W / 2, my + 36, { size: 9, color: '#ffb0b0' });
+                if (st.phase === 'false') Engine.kr(Lang.t('false_start'), W / 2, my + 36, { size: 9, color: '#ffb0b0' });
             }
         };
 

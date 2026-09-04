@@ -3,10 +3,9 @@
 'use strict';
 
 const Hurdles110 = {
-    id: 'hurdles', name: '110M HURDLES', nameKr: '110m 허들',
+    id: 'hurdles', name: '110M HURDLES',
     qualify: 14.00, wr: 12.80, lowerIsBetter: true,
     format: v => v.toFixed(2), unit: 'SEC',
-    hint: ['RUN 연타로 달리다 허들 바로 앞에서 JUMP', '너무 빠르거나 늦으면 허들에 걸려 느려집니다', '허들 10개, 출발 총성 전에 누르면 부정 출발'],
     actionLabel: 'JUMP',
 
     TUNE: {
@@ -177,9 +176,9 @@ const Hurdles110 = {
                     Font.text(g, 'TIME ' + ev.format(st.player.time), W / 2, my + 5, { scale: 2, color: '#ffffff', align: 'center' });
                     const line = st.qualified ? (st.newBest ? 'NEW RECORD!' : 'QUALIFIED!') : 'FAILED';
                     Font.text(g, line, W / 2, my + 24, { scale: 2, color: st.qualified ? '#60ff60' : '#ff5050', align: 'center' });
-                    Engine.kr(st.qualified ? (st.newBest ? '신기록!' : '기준 통과!') : '기준 기록 미달', W / 2, my + 41, { size: 8 });
+                    Engine.kr(st.qualified ? (st.newBest ? Lang.t('new_record') : Lang.t('pass')) : Lang.t('fail'), W / 2, my + 41, { size: 8 });
                 }
-                if (st.phase === 'false') Engine.kr('부정 출발! 총성 후에 두드리세요', W / 2, my + 36, { size: 9, color: '#ffb0b0' });
+                if (st.phase === 'false') Engine.kr(Lang.t('false_start'), W / 2, my + 36, { size: 9, color: '#ffb0b0' });
             }
         };
 

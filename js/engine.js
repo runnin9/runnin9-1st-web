@@ -279,7 +279,7 @@ const Engine = (() => {
         Draw.rect(g, cx - 19, cy - 9, 38, 18, '#3aa0e8');
         Draw.rect(g, cx + 20, cy - 2, 1, 4, '#333');
         Font.text(g, 'ROTATE', cx, cy + 20, { scale: 2, color: '#ffd95c', align: 'center' });
-        kr('폰을 가로로 돌려주세요', cx, cy + 42, { size: 11 });
+        kr(typeof Lang !== 'undefined' ? Lang.t('rotate') : 'Rotate your phone', cx, cy + 42, { size: 11 });
     }
 
     // ----- 루프 -----
