@@ -81,6 +81,13 @@ const Hammer = {
             if (st.qualifiedNow) { nb ? Sound.record() : Sound.jingle(); Native.haptic('MEDIUM'); }
         }
 
+        // 해머 공: 밝은 테두리 + 어두운 속 (어두운 관중석 위에서도 보이도록)
+        function drawBall(g, x, y) {
+            Draw.rect(g, x - 3, y - 3, 7, 7, '#e8e8f0');
+            Draw.rect(g, x - 2, y - 2, 5, 5, '#303038');
+            Draw.rect(g, x - 1, y - 1, 2, 2, '#686878');
+        }
+
         const scene = {
             pads: true,
             enter() { Engine.setActionLabel('THROW'); st.camX = -S.W * 0.3; newAttempt(); },
@@ -184,8 +191,7 @@ const Hammer = {
                 const behind = Math.sin(p.theta) < 0;
                 const drawHammer = () => {
                     Draw.line(g, cx + facing * 3, gy - 16, hx, hy, '#b0b0c0', 1);
-                    Draw.rect(g, hx - 2, hy - 2, 5, 5, '#303038');
-                    Draw.rect(g, hx - 1, hy - 1, 2, 2, '#585868');
+                    drawBall(g, hx, hy);
                 };
                 if (spinning && behind) drawHammer();
                 let pose = Athlete.POSE.stand;
@@ -194,14 +200,14 @@ const Hammer = {
                 else if (st.phase === 'land' && st.result == null) pose = Athlete.POSE.fall;
                 Athlete.draw(g, cx, gy, pose, Athlete.PAL.player, spinning ? facing : 1);
                 if (spinning && !behind) drawHammer();
-                if (st.phase === 'ready') { Draw.line(g, cx + 3, gy - 16, cx + 14, gy - 4, '#b0b0c0', 1); Draw.rect(g, cx + 12, gy - 6, 5, 5, '#303038'); }
+                if (st.phase === 'ready') { Draw.line(g, cx + 3, gy - 16, cx + 14, gy - 4, '#b0b0c0', 1); drawBall(g, cx + 14, gy - 4); }
                 // 날아가는 / 떨어진 해머
                 if (st.phase === 'fly') {
                     const j = st.j, jx = j.x * P - st.camX, jy = gy - (1.2 + T.HMAX_DRAW * (1 - Math.exp(-(j.y - 1.2) / T.HMAX_DRAW))) * P;
-                    Draw.rect(g, jx - 2, jy - 2, 5, 5, '#303038'); Draw.rect(g, jx - 1, jy - 1, 2, 2, '#585868');
+                    drawBall(g, jx, jy);
                 } else if (st.phase === 'land' && st.result != null) {
                     const jx = st.j.x * P - st.camX;
-                    Draw.rect(g, jx - 2, gy - 4, 5, 5, '#303038');
+                    drawBall(g, jx, gy - 3);
                     if (st.t < 0.4) { g.fillStyle = '#6a4a2a'; for (let i = 0; i < 5; i++) g.fillRect(jx - 6 + i * 3, gy - 3 - Math.round(Math.sin(st.t * 14 + i) * 4), 2, 2); }
                 }
 
