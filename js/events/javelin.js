@@ -8,14 +8,14 @@ const Javelin = {
     qualify: 62.00, wr: 98.48, lowerIsBetter: false,
     format: v => v.toFixed(2), unit: 'M',
     attempts: 3,
-    hint: ['RUN 연타로 달리다 빨간 선 3m 앞(노란 표시)에서 THROW', '누르는 동안 각도가 오르고 선수는 계속 전진합니다', '선을 넘기 전에 떼야 합니다. 45도쯤이 최적. 기회는 3번'],
+    hint: ['RUN 연타로 달리다 빨간 선 2m 앞(노란 표시)에서 THROW', '누르면 선수가 멈춰 서고 누르는 동안 각도가 오릅니다', '선을 넘기 전에 떼야 합니다. 45도쯤이 최적. 기회는 3번'],
     actionLabel: 'THROW',
 
     TUNE: {
         PPM: 12,
         LINE: 35,             // 파울 라인 (m)
         ANGLE_SPEED: 75,      // 초당 각도 상승 (도)
-        WINDUP_DRAG: 4.0,     // 준비 자세 중 감속 (초당 비율). 0.6초 누르면 약 2.4m 전진
+        WINDUP_DECEL: 30,     // 준비 자세 중 감속 (m/s^2). 최고 속도에서도 약 1.8m 안에 멈춤
         GRACE: 0.15,          // 선을 살짝 넘긴 경우 봐주는 거리 (m)
         BOOST: 2.1, BASE: 5,  // 창 속도 = 달리기 속도 x BOOST + BASE (m/s)
         POWER: 0.95,          // 비거리 배율
@@ -86,7 +86,7 @@ const Javelin = {
                     else if (st.timer > 20) foul();
                 } else if (st.phase === 'hold') {
                     st.j.angle = Math.min(90, st.j.angle + T.ANGLE_SPEED * dt);
-                    p.v = Math.max(0, p.v - p.v * T.WINDUP_DRAG * dt);
+                    p.v = Math.max(0, p.v - T.WINDUP_DECEL * dt);
                     p.pos += p.v * dt; p.anim += p.v * dt * 1.5;
                     if (p.pos > T.LINE + T.GRACE) { foul(); return; }
                     if (st.j.angle >= 90) release(90);
@@ -144,8 +144,8 @@ const Javelin = {
                     g.fillRect(x, L.trackTop, 1, major ? L.trackBot - L.trackTop : 6);
                     if (major) Font.text(g, String(m), x + 3, L.trackTop + 2, { color: 'rgba(255,255,255,0.8)' });
                 }
-                // THROW 권장 지점 (선 3m 전) 표시
-                const hx = Math.round((T.LINE - 3) * P - st.camX);
+                // THROW 권장 지점 (선 2m 전) 표시
+                const hx = Math.round((T.LINE - 2) * P - st.camX);
                 g.fillStyle = '#ffd95c'; g.fillRect(hx, L.trackBot - 5, 1, 5); g.fillRect(hx - 2, L.trackBot - 5, 5, 1);
                 // 파울 라인 (빨강)
                 g.fillStyle = '#e03030'; g.fillRect(lx - 1, L.trackTop, 3, L.trackBot - L.trackTop);
