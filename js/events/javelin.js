@@ -19,8 +19,7 @@ const Javelin = {
         GRACE: 0.15,          // 선을 살짝 넘긴 경우 봐주는 거리 (m)
         BOOST: 2.1, BASE: 5,  // 창 속도 = 달리기 속도 x BOOST + BASE (m/s)
         POWER: 0.95,          // 비거리 배율
-        TIME_SCALE: 0.7,      // 비행 시간 배율 (짧을수록 빠르게 날아감)
-        HMAX_DRAW: 3.6        // 화면에 그리는 최대 높이 (m 환산). 출발 각도는 실제대로, 위로 갈수록 눌러서 HUD 아래에 머물게 함
+        TIME_SCALE: 0.85      // 비행 시간 배율 (1.0 = 실제 물리 시간)
     },
 
     create() {
@@ -46,7 +45,7 @@ const Javelin = {
             j.from = p.pos;
             j.dist = (vj * vj * Math.sin(2 * a) / G) * T.POWER;
             j.height = (Math.pow(vj * Math.sin(a), 2) / (2 * G)) * T.POWER;
-            j.T = Math.max(0.6, (2 * vj * Math.sin(a) / G) * T.TIME_SCALE);
+            j.T = Math.max(0.6, (2 * vj * Math.sin(a) / G) * Math.sqrt(T.POWER) * T.TIME_SCALE);
             j.t = 0; j.x = p.pos; j.y = 1.8;
             st.phase = 'fly';
             Sound.tone(500, 900, 0.15, 'square', 0.06);
@@ -188,10 +187,12 @@ const Javelin = {
                 // 날아가는 창 / 꽂힌 창
                 if (st.phase === 'fly') {
                     const j = st.j, jx = j.x * P - st.camX;
-                    const hRel = Math.max(0, j.y - 1.8);
-                    const jy = gy - (1.8 + T.HMAX_DRAW * (1 - Math.exp(-hRel / T.HMAX_DRAW))) * P;
-                    const vis = Math.exp(-hRel / T.HMAX_DRAW);   // 화면상 기울기 보정
-                    Athlete.drawJavelin(g, jx, jy, Math.atan(j.slope * vis), 24);
+                    // 실제 높이 그대로: 높이 오르면 화면 위로 사라졌다가 떨어지며 다시 나타남
+                    const jy = gy - j.y * P;
+                    if (jy < 38) {
+                        Draw.rect(g, jx - 1, 40, 3, 2, '#ffffff'); Draw.rect(g, jx - 2, 42, 5, 2, '#ffffff'); Draw.rect(g, jx - 3, 44, 7, 2, '#ffffff');
+                        Font.text(g, Math.round(j.y) + 'M', jx, 48, { color: '#ffffff', align: 'center' });
+                    } else Athlete.drawJavelin(g, jx, jy, Math.atan(j.slope), 24);
                 } else if (st.phase === 'land' && st.result != null) {
                     const jx = st.j.x * P - st.camX;
                     Athlete.drawJavelin(g, jx - Math.cos(0.95) * 10, gy - Math.sin(0.95) * 10, 0.95, 24);

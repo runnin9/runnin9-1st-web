@@ -21,8 +21,7 @@ const Hammer = {
         POWER: 2.9,           // 비거리 배율
         RELEASE_WINDOW: 70,   // 앞쪽 기준 이 각도(도) 안에서 눌러야 함
         GO_LEAD: 120, GO_LAG: 30,   // GO 표시 구간: 앞쪽 도달 전 120도 ~ 지난 뒤 30도 (반응 시간 보정)
-        TIME_SCALE: 0.7,
-        HMAX_DRAW: 4.2,       // 화면에 그리는 최대 높이 (m 환산). 출발 각도는 실제대로, 위로 갈수록 눌러서 HUD 아래에 머물게 함
+        TIME_SCALE: 1.0,      // 비행 시간 배율 (1.0 = 실제 물리 시간)
         LIMIT: 14             // 이 시간(초) 안에 던지지 않으면 FOUL
     },
 
@@ -58,7 +57,8 @@ const Hammer = {
             j.from = CIRCLE + Math.cos(p.theta) * T.RADIUS;
             j.dist = (v * v * Math.sin(2 * a) / G) * T.POWER * acc;
             j.height = (Math.pow(v * Math.sin(a), 2) / (2 * G)) * T.POWER;
-            j.T = Math.max(0.6, (2 * v * Math.sin(a) / G) * T.TIME_SCALE);
+            // 비거리·높이를 POWER 배 했으므로 시간은 sqrt(POWER) 배 → 화면상 중력이 실제 g 와 같게 보임
+            j.T = Math.max(0.6, (2 * v * Math.sin(a) / G) * Math.sqrt(T.POWER) * T.TIME_SCALE);
             j.t = 0; j.x = j.from; j.y = 1.2;
             st.phase = 'fly';
             Sound.tone(400, 800, 0.15, 'square', 0.06);
@@ -86,6 +86,13 @@ const Hammer = {
             Draw.rect(g, x - 3, y - 3, 7, 7, '#e8e8f0');
             Draw.rect(g, x - 2, y - 2, 5, 5, '#303038');
             Draw.rect(g, x - 1, y - 1, 2, 2, '#686878');
+        }
+
+        // 화면 위로 벗어난 동안 위치와 높이 표시
+        function drawOffscreenMarker(g, x, h) {
+            const y = 40;
+            Draw.rect(g, x - 1, y, 3, 2, '#ffffff'); Draw.rect(g, x - 2, y + 2, 5, 2, '#ffffff'); Draw.rect(g, x - 3, y + 4, 7, 2, '#ffffff');
+            Font.text(g, Math.round(h) + 'M', x, y + 8, { color: '#ffffff', align: 'center' });
         }
 
         const scene = {
@@ -203,8 +210,10 @@ const Hammer = {
                 if (st.phase === 'ready') { Draw.line(g, cx + 3, gy - 16, cx + 14, gy - 4, '#b0b0c0', 1); drawBall(g, cx + 14, gy - 4); }
                 // 날아가는 / 떨어진 해머
                 if (st.phase === 'fly') {
-                    const j = st.j, jx = j.x * P - st.camX, jy = gy - (1.2 + T.HMAX_DRAW * (1 - Math.exp(-(j.y - 1.2) / T.HMAX_DRAW))) * P;
-                    drawBall(g, jx, jy);
+                    // 실제 높이 그대로: 높이 오르면 화면 위로 사라졌다가 떨어지며 다시 나타남
+                    const j = st.j, jx = j.x * P - st.camX, jy = gy - j.y * P;
+                    if (jy < 38) drawOffscreenMarker(g, jx, j.y);
+                    else drawBall(g, jx, jy);
                 } else if (st.phase === 'land' && st.result != null) {
                     const jx = st.j.x * P - st.camX;
                     drawBall(g, jx, gy - 3);
