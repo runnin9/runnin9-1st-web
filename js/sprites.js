@@ -36,6 +36,8 @@ const Athlete = (() => {
         stumble:{ hipH: 6, lean: 60, thighL: 40, shinL: 20, thighR: -20, shinR: -60, armL: 40, foreL: 80, armR: 20, foreR: 60 },
         spin:   { hipH: 8, lean: -8, thighL: 30, shinL: 20, thighR: -30, shinR: -30, armL: 85, foreL: 88, armR: 85, foreR: 88 },
         arch:   { hipH: 10, lean: -55, thighL: -30, shinL: -80, thighR: -20, shinR: -70, armL: -150, foreL: -170, armR: -140, foreR: -160 },
+        // 바를 넘는 자세: 상체는 뒤로 눕고 다리는 앞으로 들어 올려 몸 전체가 엉덩이 높이 위에 있음
+        clear:  { hipH: 10, lean: -70, thighL: 85, shinL: 70, thighR: 75, shinR: 60, armL: -160, foreL: -175, armR: -150, foreR: -170 },
         matland:{ hipH: 4, lean: -80, thighL: 20, shinL: 60, thighR: 30, shinR: 70, armL: -120, foreL: -140, armR: -100, foreR: -120 }
     };
     // 창을 들고 달리는 포즈: 앞팔을 어깨 위로 올림

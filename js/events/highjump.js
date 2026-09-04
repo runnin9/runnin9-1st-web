@@ -16,9 +16,12 @@ const HighJump = {
         BAR_X: 25,            // 바 위치 (m)
         BAR_STEP: 0.05,       // 성공 시 올라가는 높이 (m)
         ANGLE_SPEED: 90,      // 초당 각도 상승 (도)
-        POWER: 0.32,          // 도약 높이 배율
-        REACH: 1.0,           // 발 높이에 더해지는 몸 높이 (m). 발 높이 + REACH 가 바보다 높으면 성공
-        ZONE: [1.2, 2.3]      // 권장 도약 구간 (바 앞 거리, m). 정점이 바 위에 오는 거리
+        POWER: 0.42,          // 도약 높이 배율
+        HIP: 0.83,            // 발에서 엉덩이까지 높이 (m). 발 높이 + HIP 가 바보다 높아야 성공 (그림과 일치)
+        MARGIN: 0.05,         // 성공에 필요한 여유 (m)
+        MAT_H: 0.7,           // 매트 높이 (m)
+        MAT_LEN: 3.5,         // 매트 길이 (m)
+        ZONE: [1.4, 2.6]      // 권장 도약 구간 (바 앞 거리, m). 정점이 바 위에 오는 거리
     },
 
     create() {
@@ -51,6 +54,20 @@ const HighJump = {
             st.phase = 'fly';
             j.checked = false;
             Sound.tone(300, 800, 0.2, 'square', 0.06);
+        }
+        // 비행 위치 갱신. 바를 지난 뒤에는 매트 윗면에서 멈추고 매트 밖으로 나가지 않음. 진행률(0~1) 반환
+        function advanceFlight(dt) {
+            const j = st.jump, p = st.p;
+            if (j.landed) return 1;
+            j.t += dt;
+            const s = Math.min(1, j.t / j.T);
+            p.pos = j.from + j.dist * s;
+            p.y = j.height * 4 * s * (1 - s);
+            const matEnd = T.BAR_X + T.MAT_LEN - 0.4;
+            if (p.pos > T.BAR_X + 0.3 && s > 0.5 && p.y <= T.MAT_H) { p.y = T.MAT_H; j.landed = true; j.t = j.T; }
+            if (p.pos > matEnd) { p.pos = matEnd; p.y = Math.max(p.y, T.MAT_H); j.landed = true; j.t = j.T; }
+            if (s >= 1 && !j.landed) { p.y = 0; j.landed = true; }
+            return j.landed ? 1 : s;
         }
         function heightAt(x) {   // 도약 지점 x 에서의 발 높이 (m)
             const j = st.jump;
@@ -94,29 +111,18 @@ const HighJump = {
                     if (st.jump.angle >= 90) launch(90);
                 } else if (st.phase === 'fly') {
                     const j = st.jump;
-                    j.t += dt;
-                    const s = Math.min(1, j.t / j.T);
-                    p.pos = j.from + j.dist * s;
-                    p.y = j.height * 4 * s * (1 - s);
+                    const s = advanceFlight(dt);
                     // 바 통과 판정
                     if (!j.checked && p.pos >= T.BAR_X) {
                         j.checked = true;
                         const h = heightAt(T.BAR_X);
-                        if (h + T.REACH >= st.bar) cleared(); else fail('hit');
+                        st.lastCheck = { h, need: st.bar + T.MARGIN - T.HIP };
+                        if (h + T.HIP >= st.bar + T.MARGIN) cleared(); else fail('hit');
                     }
-                    if (s >= 1) {
-                        p.y = 0;
-                        if (!j.checked) fail('short');   // 바 앞에 착지
-                    }
+                    if (s >= 1 && st.phase === 'fly') fail('short');   // 바 앞에 착지
                 } else if (st.phase === 'land') {
-                    // 성공/실패 후 남은 비행을 마저 그리기 위해 위치 계속 갱신
-                    const j = st.jump;
-                    if (j && j.t < j.T) {
-                        j.t += dt;
-                        const s = Math.min(1, j.t / j.T);
-                        p.pos = j.from + j.dist * s;
-                        p.y = j.height * 4 * s * (1 - s);
-                    } else p.y = 0;
+                    // 성공/실패 후 남은 비행(매트 착지까지)을 마저 그림
+                    if (st.jump) advanceFlight(dt);
                     if (st.t > 2.6) {
                         if (st.result) {
                             if (Game.mode === 'olympic' && st.qualifiedNow) { finishEvent(); return; }
@@ -165,7 +171,7 @@ const HighJump = {
                 const z0 = Math.round((T.BAR_X - T.ZONE[1]) * P - st.camX), z1 = Math.round((T.BAR_X - T.ZONE[0]) * P - st.camX);
                 g.fillStyle = 'rgba(255,217,92,0.55)'; g.fillRect(z0, L.trackBot - 8, z1 - z0, 3);
                 // 매트
-                const mx0 = bx + 2, mw = Math.round(3.5 * P), mh = Math.round(0.7 * P);
+                const mx0 = bx + 2, mw = Math.round(T.MAT_LEN * P), mh = Math.round(T.MAT_H * P);
                 Draw.rect(g, mx0, gy - mh, mw, mh, '#2f6fe0');
                 Draw.rect(g, mx0, gy - mh, mw, 2, '#5a90f0');
                 Draw.rect(g, mx0, gy - 1, mw, 2, '#1e4aa0');
@@ -186,8 +192,9 @@ const HighJump = {
                 if (st.phase === 'ready') pose = Athlete.POSE.stand;
                 else if (st.phase === 'run') pose = p.v < 0.4 ? Athlete.POSE.stand : Athlete.runPose(p.anim, 8 + p.v);
                 else if (st.phase === 'hold') pose = Athlete.POSE.takeoff;
-                else if (st.phase === 'fly' || (st.phase === 'land' && st.jump && st.jump.t < st.jump.T)) pose = st.jump.t / st.jump.T < 0.25 ? Athlete.POSE.takeoff : Athlete.POSE.arch;
-                else pose = st.result ? Athlete.POSE.matland : Athlete.POSE.fall;
+                else if (st.phase === 'fly' || (st.phase === 'land' && st.jump && !st.jump.landed)) pose = st.jump.t / st.jump.T < 0.2 ? Athlete.POSE.takeoff : Athlete.POSE.clear;
+                else if (st.jump && st.jump.landed && p.y >= T.MAT_H - 0.01) pose = Athlete.POSE.matland;
+                else pose = st.result ? Athlete.POSE.stand : Athlete.POSE.fall;
                 Athlete.draw(g, x, fy, pose, Athlete.PAL.player, 1);
 
                 // HUD
