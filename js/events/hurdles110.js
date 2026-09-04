@@ -11,7 +11,8 @@ const Hurdles110 = {
     TUNE: {
         PPM: 12,
         LENGTH: 110,
-        JUMP_T: 0.38,         // 공중에 떠 있는 시간 (초)
+        JUMP_T: 0.45,         // 공중에 떠 있는 시간 (초)
+        SAME_BTN: 0.85,       // 허들에서만: 같은 패드 연타 효율 (오른손이 JUMP 를 오가는 동안 왼손만 두드려도 덜 느려짐)
         JUMP_H: 0.6,          // 점프 높이 (m)
         CLEAR_MIN: 0.12,      // 이 구간(점프 진행률) 안에서 허들을 지나야 성공
         CLEAR_MAX: 0.92,
@@ -36,6 +37,11 @@ const Hurdles110 = {
         }
         function toReady() { st.phase = 'ready'; st.t = 0; st.timer = 0; st.msg = ''; resetRunners(); }
 
+        function tap(R, name) {
+            const gain = name !== R.lastBtn ? RunTune.GAIN : RunTune.GAIN * T.SAME_BTN;
+            R.v = Math.min(RunTune.VMAX, R.v + gain);
+            R.lastBtn = name; R.taps = (R.taps || 0) + 1;
+        }
         function jump(R) {
             if (R.air > 0 || R.stumble > 0 || R.done) return false;
             R.air = 0.0001;
@@ -126,8 +132,10 @@ const Hurdles110 = {
                 }
                 if (st.phase !== 'run' || P.done) return;
                 if (name === 'runL' || name === 'runR') {
-                    if (P.stumble <= 0) { RunTune.tap(P, name); Sound.step(); }
+                    if (P.stumble <= 0) { tap(P, name); Sound.step(); }
                 } else if (name === 'action') {
+                    // JUMP 도 한 걸음으로 침 (오른손 엄지가 RUN 과 JUMP 를 오가도 리듬이 끊기지 않음)
+                    if (P.stumble <= 0) tap(P, 'runR');
                     if (jump(P)) Sound.tone(300, 600, 0.1, 'square', 0.05);
                 }
             },
