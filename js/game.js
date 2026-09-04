@@ -6,7 +6,7 @@ const EVENTS = [
     Dash100,
     LongJump,
     Javelin,
-    { id: 'hurdles', name: '110M HURDLES', nameKr: '110m 허들', todo: true, format: v => v.toFixed(2), unit: 'SEC', lowerIsBetter: true },
+    Hurdles110,
     { id: 'hammer', name: 'HAMMER THROW', nameKr: '해머던지기', todo: true, format: v => v.toFixed(2), unit: 'M' },
     { id: 'highjump', name: 'HIGH JUMP', nameKr: '높이뛰기', todo: true, format: v => v.toFixed(2), unit: 'M' }
 ];
