@@ -29,8 +29,16 @@ const Athlete = (() => {
         fall:   { hipH: 3, lean: 95, thighL: 20, shinL: 10, thighR: -10, shinR: -20, armL: 60, foreL: 90, armR: 40, foreR: 70 },
         takeoff:{ hipH: 10, lean: 5, thighL: 70, shinL: 10, thighR: -25, shinR: -35, armL: 120, foreL: 160, armR: -40, foreR: -20 },
         fly:    { hipH: 10, lean: 10, thighL: 55, shinL: 35, thighR: 45, shinR: 25, armL: 150, foreL: 175, armR: 140, foreR: 170 },
-        land:   { hipH: 5, lean: 35, thighL: 75, shinL: 45, thighR: 70, shinR: 40, armL: 70, foreL: 80, armR: 60, foreR: 70 }
+        land:   { hipH: 5, lean: 35, thighL: 75, shinL: 45, thighR: 70, shinR: 40, armL: 70, foreL: 80, armR: 60, foreR: 70 },
+        windup: { hipH: 9, lean: -12, thighL: 45, shinL: 20, thighR: -30, shinR: -40, armL: -150, foreL: -165, armR: 50, foreR: 70 },
+        throw:  { hipH: 8, lean: 28, thighL: 55, shinL: 35, thighR: -40, shinR: -30, armL: 125, foreL: 150, armR: -30, foreR: -20 }
     };
+    // 창을 들고 달리는 포즈: 앞팔을 어깨 위로 올림
+    function runPoseJavelin(p, lean) {
+        const o = runPose(p, lean);
+        o.armL = -140; o.foreL = -160;
+        return o;
+    }
 
     function draw(g, x, groundY, pose, pal, facing) {
         pal = pal || PAL.player;
@@ -64,9 +72,20 @@ const Athlete = (() => {
         Draw.rect(g, footL.x - 1 + F, footL.y - 1, 3, 2, pal.shoe);
         Draw.line(g, sh.x, sh.y, elbL.x, elbL.y, pal.skin, 2);
         Draw.line(g, elbL.x, elbL.y, handL.x, handL.y, pal.skin, 2);
+        return { hip, shoulder: sh, head, hand: handL, handBack: handR, footL, footR };
     }
 
-    return { PAL, POSE, runPose, draw };
+    // 창: (x,y) 에서 angle(라디안, 위쪽 양수) 방향으로 길이 len
+    function drawJavelin(g, x, y, angle, len) {
+        len = len || 24;
+        const tx = x + Math.cos(angle) * len * 0.55, ty = y - Math.sin(angle) * len * 0.55;
+        const bx = x - Math.cos(angle) * len * 0.45, by = y + Math.sin(angle) * len * 0.45;
+        Draw.line(g, bx, by, tx, ty, '#d8d8e0', 1);
+        Draw.line(g, x + Math.cos(angle) * len * 0.42, y - Math.sin(angle) * len * 0.42, tx, ty, '#606070', 1);
+        Draw.rect(g, x - 1, y - 1, 2, 2, '#e04040');
+    }
+
+    return { PAL, POSE, runPose, runPoseJavelin, draw, drawJavelin };
 })();
 
 // ---------- 달리기 조작감 (모든 종목 공용) ----------
