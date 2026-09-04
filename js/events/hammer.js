@@ -1,28 +1,28 @@
 // hammer.js - 해머던지기
-// 조작: RUN 연타로 회전 속도 상승 → THROW 누르면 각도 상승(회전은 계속) → 해머가 앞쪽을 향할 때 떼면 던지기.
-// 옆·뒤를 향한 채 놓으면 케이지에 맞아 FOUL.
+// 조작: RUN 연타로 회전 속도 상승 → 해머가 앞쪽일 때(GO) THROW 를 누르면 방향 확정·해머 정지 →
+// 누르는 동안 각도 상승 → 떼면 던지기. 앞쪽이 아닐 때 누르면 케이지 FOUL.
 'use strict';
 
 const Hammer = {
     id: 'hammer', name: 'HAMMER THROW', nameKr: '해머던지기',
-    qualify: 58.00, wr: 86.74, lowerIsBetter: false,
+    qualify: 55.00, wr: 86.74, lowerIsBetter: false,
     format: v => v.toFixed(2), unit: 'M',
     attempts: 3,
-    hint: ['RUN 연타로 회전 속도를 올리세요 (게이지가 빨강이면 최고)', '해머가 뒤쪽에 있을 때 THROW 를 누르기 시작하면 각도가 오릅니다', '45도 근처에서 GO 가 켜질 때 떼세요. 옆이나 뒤로 놓으면 FOUL. 기회는 3번'],
+    hint: ['RUN 연타로 회전 속도를 올리세요 (게이지가 빨강이면 최고)', 'GO 가 켜지는 순간 THROW 를 누르세요. 해머 방향이 그때 정해집니다', '누르고 있으면 각도가 오릅니다. 45도에서 떼세요. 기회는 3번'],
     actionLabel: 'THROW',
 
     TUNE: {
         PPM: 12,
         RADIUS: 1.8,          // 해머 줄 길이 (m)
         W_GAIN: 2.0,          // 한 번 두드릴 때 늘어나는 각속도 (rad/s)
-        W_DRAG: 0.9,          // 초당 각속도 감쇠 비율 (누르는 동안은 감쇠 없음)
+        W_DRAG: 0.5,          // 초당 각속도 감쇠 비율 (누르려고 연타를 멈추는 사이 덜 줄도록 완만하게) (누르는 동안은 감쇠 없음)
         W_MAX: 9.42,          // 최고 각속도 (rad/s, 초당 1.5회전). 약 4.5회/초 연타면 도달
         ANGLE_SPEED: 75,      // 초당 각도 상승 (도)
-        POWER: 2.5,           // 비거리 배율
-        RELEASE_WINDOW: 70,   // 앞쪽 기준 이 각도(도) 안에서 놓아야 함
+        POWER: 2.9,           // 비거리 배율
+        RELEASE_WINDOW: 70,   // 앞쪽 기준 이 각도(도) 안에서 눌러야 함
+        GO_LEAD: 120, GO_LAG: 30,   // GO 표시 구간: 앞쪽 도달 전 120도 ~ 지난 뒤 30도 (반응 시간 보정)
         TIME_SCALE: 0.7,
-        VSCALE: 0.15,         // 화면용 궤적 높이 축소
-        VMAX_DRAW: 5.5,       // 화면에 그리는 최대 높이 (m 환산, HUD 아래에 머물도록)
+        HMAX_DRAW: 4.2,       // 화면에 그리는 최대 높이 (m 환산). 출발 각도는 실제대로, 위로 갈수록 눌러서 HUD 아래에 머물게 함
         LIMIT: 14             // 이 시간(초) 안에 던지지 않으면 FOUL
     },
 
@@ -50,9 +50,8 @@ const Hammer = {
         }
         function release(angle) {
             const p = st.p;
-            const err = dirError();
-            if (Math.abs(err) > T.RELEASE_WINDOW) { foul('cage'); return; }
-            const v = p.w * T.RADIUS, a = angle * Math.PI / 180;
+            const err = st.j.err;
+            const v = st.j.w * T.RADIUS, a = angle * Math.PI / 180;
             const acc = Math.cos(err * Math.PI / 180);
             const j = st.j;
             j.angle = angle; j.err = err;
@@ -91,17 +90,17 @@ const Hammer = {
                 if (st.phase === 'ready') {
                     st.msg = 'TRY ' + st.attempt + '/' + ev.attempts;
                     if (st.t > 1.2) { st.phase = 'spin'; st.t = 0; st.msg = ''; Sound.beep(); }
-                } else if (st.phase === 'spin' || st.phase === 'hold') {
+                } else if (st.phase === 'spin') {
                     st.timer += dt;
-                    if (st.phase === 'spin') p.w = Math.max(0, p.w - p.w * T.W_DRAG * dt);
+                    p.w = Math.max(0, p.w - p.w * T.W_DRAG * dt);
                     const before = p.theta;
                     p.theta += p.w * dt;
                     if (Math.floor(before / (2 * Math.PI)) !== Math.floor(p.theta / (2 * Math.PI))) p.turns++;
-                    if (st.phase === 'hold') {
-                        st.j.angle = Math.min(90, st.j.angle + T.ANGLE_SPEED * dt);
-                        if (st.j.angle >= 90) release(90);
-                    }
-                    if (st.timer > T.LIMIT && st.phase !== 'fly') foul('time');
+                    if (st.timer > T.LIMIT) foul('time');
+                } else if (st.phase === 'hold') {
+                    // 해머는 누른 자리에 멈춰 있고 각도만 오름
+                    st.j.angle = Math.min(90, st.j.angle + T.ANGLE_SPEED * dt);
+                    if (st.j.angle >= 90) release(90);
                 } else if (st.phase === 'fly') {
                     const j = st.j;
                     j.t += dt;
@@ -133,7 +132,9 @@ const Hammer = {
                     Sound.step();
                 } else if (name === 'action') {
                     if (st.phase !== 'spin' || p.w < 3) return;
-                    st.j = { angle: 0 };
+                    const err = dirError();
+                    if (Math.abs(err) > T.RELEASE_WINDOW) { foul('cage'); return; }
+                    st.j = { angle: 0, err, w: p.w };
                     st.phase = 'hold';
                     Native.haptic('LIGHT');
                 }
@@ -196,7 +197,7 @@ const Hammer = {
                 if (st.phase === 'ready') { Draw.line(g, cx + 3, gy - 16, cx + 14, gy - 4, '#b0b0c0', 1); Draw.rect(g, cx + 12, gy - 6, 5, 5, '#303038'); }
                 // 날아가는 / 떨어진 해머
                 if (st.phase === 'fly') {
-                    const j = st.j, jx = j.x * P - st.camX, jy = gy - Math.min(T.VMAX_DRAW, 1.2 + (j.y - 1.2) * T.VSCALE) * P;
+                    const j = st.j, jx = j.x * P - st.camX, jy = gy - (1.2 + T.HMAX_DRAW * (1 - Math.exp(-(j.y - 1.2) / T.HMAX_DRAW))) * P;
                     Draw.rect(g, jx - 2, jy - 2, 5, 5, '#303038'); Draw.rect(g, jx - 1, jy - 1, 2, 2, '#585868');
                 } else if (st.phase === 'land' && st.result != null) {
                     const jx = st.j.x * P - st.camX;
@@ -206,8 +207,8 @@ const Hammer = {
 
                 // 방향 표시: 앞쪽 구간이 초록으로 켜짐
                 if (spinning) {
-                    const err = Math.abs(dirError());
-                    const ok = err <= T.RELEASE_WINDOW;
+                    const e = dirError();
+                    const ok = st.phase === 'hold' ? true : (e >= -T.GO_LEAD && e <= T.GO_LAG);
                     const ax = cx + 26, ay = gy - 30;
                     Draw.panel(g, ax - 4, ay - 10, 36, 20, 'rgba(0,0,0,0.6)');
                     Font.text(g, ok ? 'GO' : '..', ax + 14, ay - 6, { scale: 1, color: ok ? '#60ff60' : '#888', align: 'center' });

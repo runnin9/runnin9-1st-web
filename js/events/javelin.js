@@ -20,7 +20,7 @@ const Javelin = {
         BOOST: 2.1, BASE: 5,  // 창 속도 = 달리기 속도 x BOOST + BASE (m/s)
         POWER: 0.95,          // 비거리 배율
         TIME_SCALE: 0.7,      // 비행 시간 배율 (짧을수록 빠르게 날아감)
-        VSCALE: 0.2           // 화면에 그릴 때 궤적 높이 축소 비율 (실제 20m 는 화면 밖이므로)
+        HMAX_DRAW: 3.6        // 화면에 그리는 최대 높이 (m 환산). 출발 각도는 실제대로, 위로 갈수록 눌러서 HUD 아래에 머물게 함
     },
 
     create() {
@@ -188,8 +188,10 @@ const Javelin = {
                 // 날아가는 창 / 꽂힌 창
                 if (st.phase === 'fly') {
                     const j = st.j, jx = j.x * P - st.camX;
-                    const jy = gy - (1.8 + (j.y - 1.8) * T.VSCALE) * P;
-                    Athlete.drawJavelin(g, jx, jy, Math.atan(j.slope * T.VSCALE), 24);
+                    const hRel = Math.max(0, j.y - 1.8);
+                    const jy = gy - (1.8 + T.HMAX_DRAW * (1 - Math.exp(-hRel / T.HMAX_DRAW))) * P;
+                    const vis = Math.exp(-hRel / T.HMAX_DRAW);   // 화면상 기울기 보정
+                    Athlete.drawJavelin(g, jx, jy, Math.atan(j.slope * vis), 24);
                 } else if (st.phase === 'land' && st.result != null) {
                     const jx = st.j.x * P - st.camX;
                     Athlete.drawJavelin(g, jx - Math.cos(0.95) * 10, gy - Math.sin(0.95) * 10, 0.95, 24);
