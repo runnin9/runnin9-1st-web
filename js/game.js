@@ -8,7 +8,7 @@ const EVENTS = [
     Javelin,
     Hurdles110,
     Hammer,
-    { id: 'highjump', name: 'HIGH JUMP', nameKr: '높이뛰기', todo: true, format: v => v.toFixed(2), unit: 'M' }
+    HighJump
 ];
 
 const Game = {
@@ -194,7 +194,7 @@ const Scenes = (() => {
                 Font.text(g, ev.name, cx, 12, { scale: 2, color: '#ffd95c', align: 'center' });
                 Font.text(g, ev.format(r.value) + ' ' + ev.unit, cx, 40, { scale: 3, color: '#ffffff', align: 'center' });
                 const b = Game.best(ev);
-                Font.text(g, 'BEST ' + ev.format(b) + ' ' + ev.unit + '   WR ' + ev.format(ev.wr) + ' ' + ev.unit, cx, 70, { color: '#c8d8ff', align: 'center' });
+                Font.text(g, 'BEST ' + (b == null ? '---' : ev.format(b)) + ' ' + ev.unit + '   WR ' + ev.format(ev.wr) + ' ' + ev.unit, cx, 70, { color: '#c8d8ff', align: 'center' });
                 if (r.newBest && blink(t)) Font.text(g, 'NEW RECORD!', cx, 86, { scale: 2, color: '#ffd95c', align: 'center' });
                 Font.text(g, r.qualified ? 'QUALIFIED!' : 'NOT QUALIFIED', cx, 108, { scale: 2, color: r.qualified ? '#60ff60' : '#ff5050', align: 'center' });
                 Engine.kr(r.qualified ? '기준 통과! 다음 종목으로' : '기준 기록 ' + ev.format(ev.qualify) + ' ' + ev.unit + ' 미달', cx, 126, { size: 8 });
