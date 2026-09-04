@@ -70,6 +70,8 @@ npm run assets
 
 ## 스토어 출시
 
+자세한 단계별 체크리스트는 저장소의 `store/RELEASE.md` 를 보세요. 스토어 문구는 `store/listing.md`, 스크린샷은 `store/screenshots/` 에 있습니다.
+
 ### Google Play (Android)
 
 1. `android/app/build.gradle`에서 `versionCode`(정수, 올릴 때마다 +1)와 `versionName`(예: `1.0.0`)을 수정합니다.

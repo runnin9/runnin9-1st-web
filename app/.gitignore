@@ -16,3 +16,4 @@ ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
 ios/DerivedData/
 *.keystore
 *.jks
+android/keystore.properties
