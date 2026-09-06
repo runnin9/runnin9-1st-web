@@ -1,0 +1,12 @@
+{
+    "name": "'88 Athletics",
+    "short_name": "'88 Athletics",
+    "start_url": "game.html",
+    "display": "standalone",
+    "orientation": "landscape",
+    "background_color": "#10122a",
+    "theme_color": "#10122a",
+    "icons": [
+        { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    ]
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="'88 Athletics">
+    <meta name="theme-color" content="#10122a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <title>'88 Athletics - 레트로 육상 게임</title>
+    <style>
+        html, body {
+            margin: 0; padding: 0; height: 100%;
+            overflow: hidden; background: #10122a;
+            touch-action: none; overscroll-behavior: none;
+            -webkit-user-select: none; user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+    </style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script src="js/font.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/lang.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/events/dash100.js"></script>
+<script src="js/events/longjump.js"></script>
+<script src="js/events/javelin.js"></script>
+<script src="js/events/hurdles110.js"></script>
+<script src="js/events/hammer.js"></script>
+<script src="js/events/highjump.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
