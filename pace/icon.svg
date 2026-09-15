@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2450"/>
+      <stop offset="1" stop-color="#0b0e1e"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <g font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" text-anchor="middle">
+    <text x="256" y="216" font-size="132" fill="#eef1ff" letter-spacing="-4">km</text>
+    <text x="256" y="404" font-size="132" fill="#ffd95c" letter-spacing="-4">mi</text>
+  </g>
+  <g fill="#ffd95c">
+    <rect x="148" y="250" width="216" height="10" rx="5" opacity="0.35"/>
+    <path d="M256 296 l30 -34 h-60 z"/>
+  </g>
+</svg>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>러닝 페이스 변환기 (km ↔ mile)</title>
+<meta name="description" content="1km당 페이스(분:초)를 1마일당 페이스로 변환합니다. 오프라인으로 동작하며 홈 화면에 추가할 수 있습니다.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="페이스 변환">
+<meta name="theme-color" content="#0d1020" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f6fb" media="(prefers-color-scheme: light)">
+<style>
+:root{
+  --bg:#0d1020; --card:#171c33; --card-2:#1f2542; --chip:#222949;
+  --fg:#f2f4ff; --muted:#98a0c4; --line:#2b3157;
+  --accent:#ffd95c; --accent-fg:#0d1020; --teal:#5ad6a8;
+  --shadow:0 1px 0 rgba(255,255,255,.04) inset;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f1f4fb; --card:#ffffff; --card-2:#e9edf8; --chip:#e6ebf7;
+    --fg:#141936; --muted:#5c648a; --line:#d8dfef;
+    --accent:#8a5d00; --accent-fg:#ffffff; --teal:#07795a;
+    --shadow:0 1px 2px rgba(20,25,54,.06);
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",Roboto,sans-serif;
+  font-size:16px; line-height:1.45;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-right,0px) + 16px)
+          calc(env(safe-area-inset-bottom,0px) + 28px) calc(env(safe-area-inset-left,0px) + 16px);
+  -webkit-text-size-adjust:100%;
+}
+main{max-width:520px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+h1{font-size:17px;font-weight:700;margin:0;letter-spacing:-.2px}
+h1 small{display:block;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0}
+#install{display:none;border:0;border-radius:999px;background:var(--accent);color:var(--accent-fg);
+  font:inherit;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;white-space:nowrap}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 14px 16px;box-shadow:var(--shadow)}
+.card + .card{margin-top:10px}
+.card.out{background:var(--card-2)}
+.card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.label{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.2px}
+.unit{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.row{display:flex;align-items:center;gap:10px}
+.fields{flex:1;display:flex;align-items:center;justify-content:center;gap:2px}
+.fields input{
+  width:2.1ch; min-width:0; padding:2px 0; border:0; background:transparent; color:var(--fg);
+  font:inherit; font-size:clamp(46px,17vw,68px); font-weight:800; line-height:1.05;
+  text-align:center; font-variant-numeric:tabular-nums; letter-spacing:-2px;
+  border-bottom:3px solid transparent; border-radius:4px; caret-color:var(--accent);
+}
+.fields input:focus{outline:none;border-bottom-color:var(--accent)}
+.fields .colon{font-size:clamp(40px,15vw,60px);font-weight:800;line-height:1;opacity:.5;padding:0 1px;transform:translateY(-4px)}
+.out .fields input{color:var(--accent)}
+
+.step{
+  flex:0 0 auto;min-width:62px;height:52px;border-radius:14px;border:1px solid var(--line);
+  background:var(--chip);color:var(--fg);font:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;font-variant-numeric:tabular-nums;touch-action:manipulation;user-select:none;
+}
+.step:active{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+
+.arrow{display:flex;align-items:center;gap:10px;margin:10px 2px;color:var(--muted);font-size:12px}
+.arrow::before,.arrow::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.stat b{display:block;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+.stat span{font-size:11px;color:var(--muted)}
+
+.section-title{font-size:13px;font-weight:700;color:var(--muted);margin:20px 2px 8px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--chip);color:var(--fg);
+  border-radius:999px;padding:9px 14px;font:inherit;font-size:14px;font-weight:700;
+  font-variant-numeric:tabular-nums;cursor:pointer;touch-action:manipulation}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+th,td{padding:9px 12px;font-size:14px;text-align:left}
+th{font-size:12px;color:var(--muted);font-weight:600;background:var(--card-2)}
+td{border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+td.t{font-weight:700;text-align:right}
+
+details{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+summary{padding:12px 0;font-size:14px;font-weight:700;cursor:pointer;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"＋";float:right;color:var(--muted)}
+details[open] summary::after{content:"－"}
+details p{margin:0 0 12px;font-size:13.5px;color:var(--muted);line-height:1.6}
+details p b{color:var(--fg)}
+footer{margin-top:18px;text-align:center;font-size:11.5px;color:var(--muted)}
+footer a{color:var(--muted)}
+@media (display-mode:standalone){#hint-install{display:none}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>러닝 페이스 변환기<small>1 mile = 1.609344 km</small></h1>
+    <button id="install" type="button">홈 화면에 추가</button>
+  </header>
+
+  <section class="card" id="card-km">
+    <div class="card-head"><span class="label">킬로미터 페이스</span><span class="unit">분:초 / km</span></div>
+    <div class="row">
+      <button class="step" type="button" data-side="km" data-delta="-5">−5초</button>
+      <div class="fields">
+        <input id="kmMin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="5" aria-label="km 페이스 분">
+        <span class="colon">:</span>
+        <input id="kmSec" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="30" aria-label="km 페이스 초">
+      </div>
+      <button class="step" type="button" data-side="km" data-delta="5">+5초</button>
+    </div>
+  </section>
+
+  <div class="arrow">× 1.609344</div>
+
+  <section class="card out" id="card-mi">
+    <div class="card-head"><span class="label">마일 페이스</span><span class="unit">분:초 / mile</span></div>
+    <div class="row">
+      <button class="step" type="button" data-side="mi" data-delta="-5">−5초</button>
+      <div class="fields">
+        <input id="miMin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="8" aria-label="마일 페이스 분">
+        <span class="colon">:</span>
+        <input id="miSec" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="51" aria-label="마일 페이스 초">
+      </div>
+      <button class="step" type="button" data-side="mi" data-delta="5">+5초</button>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><b id="kmh">–</b><span>km/h</span></div>
+    <div class="stat"><b id="mph">–</b><span>mph</span></div>
+  </div>
+
+  <div class="section-title">자주 쓰는 km 페이스</div>
+  <div class="chips" id="chips"></div>
+
+  <div class="section-title">이 페이스로 달리면</div>
+  <table>
+    <thead><tr><th>거리</th><th style="text-align:right">예상 기록</th></tr></thead>
+    <tbody id="races"></tbody>
+  </table>
+
+  <details id="hint-install">
+    <summary>홈 화면에 추가하는 방법</summary>
+    <p><b>아이폰 (Safari)</b><br>하단 공유 버튼 <b>􀈂</b> → <b>홈 화면에 추가</b> → 추가.<br>Chrome·삼성인터넷이 아닌 <b>Safari</b>에서 열어야 합니다.</p>
+    <p><b>안드로이드 (Chrome)</b><br>우측 상단 ⋮ → <b>홈 화면에 추가</b> 또는 <b>앱 설치</b>. 위의 “홈 화면에 추가” 버튼을 눌러도 됩니다.</p>
+    <p>한 번 열어두면 <b>비행기 모드에서도</b> 동작합니다.</p>
+  </details>
+
+  <footer>입력한 값은 이 기기에만 저장됩니다.<br><a href="../index.html">← 다른 페이지</a></footer>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var MILE = 1.609344;
+  var $ = function(id){ return document.getElementById(id); };
+  var kmMin=$('kmMin'), kmSec=$('kmSec'), miMin=$('miMin'), miSec=$('miSec');
+
+  // 기준값: km 1km당 초 (소수 유지)
+  var kmPace = 330;
+
+  function clampPace(s){
+    if(!isFinite(s) || s <= 0) return 1;
+    return Math.min(Math.max(s, 60), 59*60+59);
+  }
+  function readSide(minEl, secEl){
+    var m = parseInt(minEl.value, 10); if(isNaN(m)) m = 0;
+    var s = parseInt(secEl.value, 10); if(isNaN(s)) s = 0;
+    return m*60 + s;
+  }
+  function paint(minEl, secEl, total){
+    var t = Math.round(total);
+    minEl.value = String(Math.floor(t/60));
+    secEl.value = ('0' + (t%60)).slice(-2);
+  }
+  function mmss(total){
+    var t = Math.round(total);
+    return Math.floor(t/60) + ':' + ('0' + (t%60)).slice(-2);
+  }
+  function hms(total){
+    var t = Math.round(total);
+    var h = Math.floor(t/3600), m = Math.floor(t%3600/60), s = t%60;
+    var mm = (h ? ('0'+m).slice(-2) : String(m));
+    return (h ? h + ':' : '') + mm + ':' + ('0'+s).slice(-2);
+  }
+
+  var RACES = [['5K',5],['10K',10],['하프',21.0975],['풀코스',42.195]];
+  var racesEl = $('races');
+  RACES.forEach(function(r){
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + r[0] + '</td><td class="t"></td>';
+    racesEl.appendChild(tr);
+  });
+
+  function renderDerived(){
+    $('kmh').textContent = (3600/kmPace).toFixed(1);
+    $('mph').textContent = (3600/(kmPace*MILE)).toFixed(1);
+    var cells = racesEl.querySelectorAll('td.t');
+    RACES.forEach(function(r, i){ cells[i].textContent = hms(kmPace * r[1]); });
+    var target = mmss(kmPace);
+    [].forEach.call(document.querySelectorAll('.chip'), function(c){
+      c.setAttribute('aria-pressed', c.dataset.pace === target ? 'true' : 'false');
+    });
+    try{ localStorage.setItem('kmPace', String(kmPace)); }catch(e){}
+  }
+  function renderAll(except){
+    if(except !== 'km') paint(kmMin, kmSec, kmPace);
+    if(except !== 'mi') paint(miMin, miSec, kmPace*MILE);
+    renderDerived();
+  }
+
+  function setFromKm(sec){ kmPace = clampPace(sec); }
+  function setFromMile(sec){ kmPace = clampPace(sec / MILE); }
+
+  // 입력
+  function onInput(side){
+    return function(){
+      this.value = this.value.replace(/[^0-9]/g, '').slice(0,2);
+      var a = side === 'km' ? kmMin : miMin, b = side === 'km' ? kmSec : miSec;
+      if(a.value === '' && b.value === '') return;   // 지우는 중에는 계산하지 않음
+      if(side === 'km') setFromKm(readSide(kmMin, kmSec));
+      else setFromMile(readSide(miMin, miSec));
+      renderAll(side);
+    };
+  }
+  kmMin.addEventListener('input', onInput('km'));
+  kmSec.addEventListener('input', onInput('km'));
+  miMin.addEventListener('input', onInput('mi'));
+  miSec.addEventListener('input', onInput('mi'));
+
+  [kmMin,kmSec,miMin,miSec].forEach(function(el){
+    el.addEventListener('focus', function(){ el.select(); });
+    el.addEventListener('blur', function(){ renderAll(); });
+  });
+
+  // ±5초 (길게 누르면 반복)
+  function bump(side, delta){
+    if(side === 'km') setFromKm(Math.round(kmPace) + delta);
+    else setFromMile(Math.round(kmPace*MILE) + delta);
+    renderAll();
+  }
+  [].forEach.call(document.querySelectorAll('.step'), function(btn){
+    var side = btn.dataset.side, delta = parseInt(btn.dataset.delta, 10);
+    var timer = null, repeat = null;
+    function stop(){ clearTimeout(timer); clearInterval(repeat); timer = repeat = null; }
+    btn.addEventListener('pointerdown', function(e){
+      e.preventDefault();
+      if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      bump(side, delta);
+      timer = setTimeout(function(){ repeat = setInterval(function(){ bump(side, delta); }, 90); }, 420);
+    });
+    ['pointerup','pointercancel','pointerleave'].forEach(function(ev){ btn.addEventListener(ev, stop); });
+  });
+
+  // 프리셋
+  var chips = $('chips');
+  for(var s = 210; s <= 480; s += 15){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip';
+    b.dataset.pace = mmss(s); b.dataset.sec = String(s);
+    b.textContent = mmss(s);
+    b.setAttribute('aria-pressed','false');
+    chips.appendChild(b);
+  }
+  chips.addEventListener('click', function(e){
+    var c = e.target.closest('.chip'); if(!c) return;
+    setFromKm(parseInt(c.dataset.sec, 10));
+    renderAll();
+    c.scrollIntoView({block:'nearest', inline:'center', behavior:'smooth'});
+  });
+
+  // 마지막 값 복원
+  try{
+    var saved = parseFloat(localStorage.getItem('kmPace'));
+    if(isFinite(saved) && saved > 0) kmPace = clampPace(saved);
+  }catch(e){}
+  renderAll();
+
+  // 처음 열 때 현재 페이스 칩이 보이도록
+  var active = document.querySelector('.chip[aria-pressed="true"]');
+  if(active) active.scrollIntoView({block:'nearest', inline:'center'});
+
+  // 설치 버튼 (안드로이드 Chrome)
+  var deferred = null, installBtn = $('install');
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault(); deferred = e; installBtn.style.display = 'block';
+  });
+  installBtn.addEventListener('click', function(){
+    if(!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then(function(){ deferred = null; installBtn.style.display = 'none'; });
+  });
+  window.addEventListener('appinstalled', function(){ installBtn.style.display = 'none'; });
+
+  // 오프라인 지원
+  if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+    });
+  }
+})();
+</script>
+</body>
+</html>
