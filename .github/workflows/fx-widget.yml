@@ -18,6 +18,11 @@ jobs:
     defaults:
       run:
         working-directory: fx-widget
+    env:
+      # 고정 서명 키 (저장소 Settings → Secrets and variables → Actions 에 등록)
+      FX_KEYSTORE_B64: ${{ secrets.FX_KEYSTORE_B64 }}
+      FX_KEYSTORE_PASSWORD: ${{ secrets.FX_KEYSTORE_PASSWORD }}
+      FX_VERSION_CODE: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
 
@@ -29,9 +34,17 @@ jobs:
 
       - name: Build APK
         run: |
+          if [ -n "$FX_KEYSTORE_B64" ]; then
+            echo "$FX_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/fx.jks"
+            export FX_KEYSTORE_FILE="$RUNNER_TEMP/fx.jks"
+            echo "고정 서명 키로 서명합니다."
+          else
+            echo "::warning::FX_KEYSTORE_B64 시크릿이 없어 디버그 키로 서명합니다 (업데이트 시 재설치 필요)."
+          fi
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk fx-widget.apk
+          ./gradlew --no-daemon assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk fx-widget.apk
+          rm -f "$RUNNER_TEMP/fx.jks"
 
       - uses: actions/upload-artifact@v4
         with:

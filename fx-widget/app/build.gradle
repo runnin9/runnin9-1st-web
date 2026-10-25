@@ -2,6 +2,11 @@ plugins {
     id 'com.android.application'
 }
 
+// 고정 서명 키: CI 가 GitHub Secrets 에서 키스토어를 꺼내 아래 환경변수로 넘겨줍니다.
+// 키가 없으면(로컬 빌드 등) 디버그 키로 서명합니다.
+def keystoreFile = System.getenv('FX_KEYSTORE_FILE')
+def keystorePassword = System.getenv('FX_KEYSTORE_PASSWORD')
+
 android {
     namespace 'com.runnin9.fxwidget'
     compileSdk 36
@@ -10,13 +15,26 @@ android {
         applicationId 'com.runnin9.fxwidget'
         minSdk 26
         targetSdk 36
-        versionCode 1
+        // CI 실행 번호를 버전 코드로 써서 새 빌드가 항상 이전 빌드 위에 덮어 설치되게 함
+        versionCode Integer.parseInt(System.getenv('FX_VERSION_CODE') ?: '1')
         versionName '1.0'
+    }
+
+    signingConfigs {
+        if (keystoreFile) {
+            release {
+                storeFile file(keystoreFile)
+                storePassword keystorePassword
+                keyAlias 'fxwidget'
+                keyPassword keystorePassword
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig keystoreFile ? signingConfigs.release : signingConfigs.debug
         }
     }
 
