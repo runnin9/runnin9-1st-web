@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>원달러 환율 계산기 (KRW → USD)</title>
+<meta name="description" content="원화(KRW) 금액을 입력하면 실시간 환율로 달러(USD)를 계산합니다. 홈 화면에 추가해 앱처럼 쓸 수 있습니다.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="원→달러">
+<meta name="theme-color" content="#0b1614" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f1f6f4" media="(prefers-color-scheme: light)">
+<style>
+:root{
+  --bg:#0b1614; --card:#13231f; --card-2:#1a2e29; --chip:#1d332d;
+  --fg:#eefaf6; --muted:#8fb0a6; --line:#264039;
+  --accent:#5ee0b0; --accent-fg:#0b1614; --warn:#ffcf5c; --err:#ff8a7a;
+  --shadow:0 1px 0 rgba(255,255,255,.04) inset;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f1f6f4; --card:#ffffff; --card-2:#e6f0ec; --chip:#e3eee9;
+    --fg:#0f2620; --muted:#55716a; --line:#d3e2dc;
+    --accent:#047857; --accent-fg:#ffffff; --warn:#8a5d00; --err:#b42318;
+    --shadow:0 1px 2px rgba(15,38,32,.06);
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",Roboto,sans-serif;
+  font-size:16px; line-height:1.45;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-right,0px) + 16px)
+          calc(env(safe-area-inset-bottom,0px) + 28px) calc(env(safe-area-inset-left,0px) + 16px);
+  -webkit-text-size-adjust:100%;
+}
+main{max-width:520px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+h1{font-size:17px;font-weight:700;margin:0;letter-spacing:-.2px}
+h1 small{display:block;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0}
+#install{display:none;border:0;border-radius:999px;background:var(--accent);color:var(--accent-fg);
+  font:inherit;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;white-space:nowrap}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px 16px;box-shadow:var(--shadow)}
+.card.out{background:var(--card-2)}
+.card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+.label{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.2px}
+.hint{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;min-height:1.2em}
+
+.amount{display:flex;align-items:baseline;gap:6px}
+.amount .sym{font-size:clamp(28px,9vw,38px);font-weight:800;opacity:.55}
+.amount input{
+  flex:1; width:100%; min-width:0; padding:2px 0; border:0; background:transparent; color:var(--fg);
+  font:inherit; font-size:clamp(36px,12vw,54px); font-weight:800; line-height:1.1;
+  font-variant-numeric:tabular-nums; letter-spacing:-1px; text-align:right;
+  border-bottom:3px solid transparent; border-radius:4px; caret-color:var(--accent);
+}
+.amount input:focus{outline:none;border-bottom-color:var(--accent)}
+.amount input::placeholder{color:var(--muted);opacity:.45}
+.out .amount input{color:var(--accent)}
+#clear{border:0;background:transparent;color:var(--muted);font:inherit;font-size:22px;padding:0 2px 0 6px;cursor:pointer;visibility:hidden}
+
+.swap{display:flex;align-items:center;gap:10px;margin:10px 2px;color:var(--muted);font-size:12px}
+.swap::before,.swap::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.rate{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;
+  display:flex;align-items:center;gap:12px}
+.rate .info{flex:1;min-width:0}
+.rate b{display:block;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.rate span{display:block;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rate span.stale{color:var(--warn)}
+.rate span.err{color:var(--err)}
+#refresh{flex:0 0 auto;width:46px;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--chip);
+  color:var(--fg);font-size:20px;cursor:pointer;touch-action:manipulation}
+#refresh:active{background:var(--accent);color:var(--accent-fg)}
+#refresh.spin{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.section-title{font-size:13px;font-weight:700;color:var(--muted);margin:20px 2px 8px}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.chip{border:1px solid var(--line);background:var(--chip);color:var(--fg);
+  border-radius:12px;padding:11px 4px;font:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;touch-action:manipulation}
+.chip:active{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+td{padding:9px 12px;font-size:14px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+tr:first-child td{border-top:0}
+td.t{font-weight:700;text-align:right}
+
+details{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+summary{padding:12px 0;font-size:14px;font-weight:700;cursor:pointer;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"＋";float:right;color:var(--muted)}
+details[open] summary::after{content:"－"}
+details p{margin:0 0 12px;font-size:13.5px;color:var(--muted);line-height:1.6}
+details p b{color:var(--fg)}
+footer{margin-top:18px;text-align:center;font-size:11.5px;color:var(--muted)}
+footer a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>원 → 달러 환율 계산기<small>KRW → USD · 실시간 환율</small></h1>
+    <button id="install" type="button">홈 화면에 추가</button>
+  </header>
+
+  <section class="card">
+    <div class="card-head">
+      <label class="label" for="krw">원화 KRW</label>
+      <span class="hint" id="krwHint"></span>
+    </div>
+    <div class="amount">
+      <span class="sym">₩</span>
+      <input id="krw" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="원화 금액">
+      <button id="clear" type="button" aria-label="지우기">✕</button>
+    </div>
+  </section>
+
+  <div class="swap" aria-hidden="true">↓ 환율 적용</div>
+
+  <section class="card out">
+    <div class="card-head">
+      <label class="label" for="usd">미국 달러 USD</label>
+      <span class="hint" id="usdHint"></span>
+    </div>
+    <div class="amount">
+      <span class="sym">$</span>
+      <input id="usd" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-label="달러 금액">
+    </div>
+  </section>
+
+  <div class="rate" aria-live="polite">
+    <div class="info">
+      <b id="rateText">환율 불러오는 중…</b>
+      <span id="rateMeta">&nbsp;</span>
+    </div>
+    <button id="refresh" type="button" aria-label="환율 새로고침">↻</button>
+  </div>
+
+  <div class="section-title">빠른 입력 (누르면 더해짐)</div>
+  <div class="chips" id="chips"></div>
+
+  <div class="section-title">자주 쓰는 금액</div>
+  <table><tbody id="table"></tbody></table>
+
+  <details>
+    <summary>사용법 · 홈 화면에 설치하기</summary>
+    <p><b>안드로이드 Chrome</b>: 위의 <b>홈 화면에 추가</b> 버튼을 누르거나, 주소창 오른쪽 ⋮ 메뉴 → <b>홈 화면에 추가</b>(또는 <b>앱 설치</b>)를 누르세요. 바탕화면 아이콘을 누르면 앱처럼 바로 열립니다.</p>
+    <p><b>환율</b>: 앱을 열 때와 화면을 보고 있는 동안 1분마다 자동으로 최신 환율을 받아옵니다. 여러 공개 환율 서비스를 차례로 시도하고, 인터넷이 끊기면 마지막으로 받은 환율을 사용합니다(노란색으로 표시).</p>
+    <p><b>참고</b>: 표시되는 환율은 시장 기준(중간) 환율입니다. 은행·카드사의 실제 환전/결제 환율은 수수료가 붙어 조금 다를 수 있습니다.</p>
+    <p>달러 칸에 숫자를 넣으면 반대로 원화도 계산됩니다.</p>
+  </details>
+
+  <footer><a href="../">← 목록으로</a></footer>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  function $(id){ return document.getElementById(id); }
+  var krwEl = $('krw'), usdEl = $('usd'), clearBtn = $('clear');
+  var rateText = $('rateText'), rateMeta = $('rateMeta'), refreshBtn = $('refresh');
+
+  var MAX_KRW = 1e13;
+  var rate = null;      // 1 USD = rate KRW
+  var rateInfo = null;  // { rate, source, updated(ms), fetched(ms) }
+  var krw = 0;
+
+  // ---------- 환율 소스 (CORS 허용, API 키 불필요) ----------
+  var SOURCES = [
+    { name: 'Coinbase', url: 'https://api.coinbase.com/v2/exchange-rates?currency=USD',
+      parse: function(j){ return { rate: parseFloat(j.data.rates.KRW), updated: Date.now() }; } },
+    { name: 'ExchangeRate-API', url: 'https://open.er-api.com/v6/latest/USD',
+      parse: function(j){ return { rate: j.rates.KRW, updated: j.time_last_update_unix * 1000 }; } },
+    { name: 'currency-api', url: 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json',
+      parse: function(j){ return { rate: j.usd.krw, updated: Date.parse(j.date) }; } },
+    { name: 'Frankfurter(ECB)', url: 'https://api.frankfurter.app/latest?from=USD&to=KRW',
+      parse: function(j){ return { rate: j.rates.KRW, updated: Date.parse(j.date) }; } }
+  ];
+
+  function fetchJSON(url){
+    var ctrl = 'AbortController' in window ? new AbortController() : null;
+    var t = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 7000);
+    return fetch(url, { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+      .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .finally(function(){ clearTimeout(t); });
+  }
+
+  function trySources(i){
+    if(i >= SOURCES.length) return Promise.reject(new Error('all sources failed'));
+    var s = SOURCES[i];
+    return fetchJSON(s.url).then(function(j){
+      var r = s.parse(j);
+      if(!(r.rate > 100 && r.rate < 10000)) throw new Error('bad rate');
+      return { rate: r.rate, source: s.name, updated: r.updated || Date.now(), fetched: Date.now() };
+    }).catch(function(){ return trySources(i + 1); });
+  }
+
+  var loading = false;
+  function loadRate(){
+    if(loading) return;
+    loading = true; refreshBtn.classList.add('spin');
+    trySources(0).then(function(info){
+      setRate(info, false);
+      try{ localStorage.setItem('fxRate', JSON.stringify(info)); }catch(e){}
+    }).catch(function(){
+      if(rateInfo) renderRate(true);
+      else { rateText.textContent = '환율을 불러오지 못했어요'; rateMeta.className = 'err'; rateMeta.textContent = '인터넷 연결을 확인하고 ↻ 를 눌러 주세요'; }
+    }).finally(function(){ loading = false; refreshBtn.classList.remove('spin'); });
+  }
+
+  function setRate(info, stale){
+    rateInfo = info; rate = info.rate;
+    renderRate(stale);
+    renderAll();
+  }
+
+  function timeLabel(ms){
+    var d = new Date(ms), now = new Date();
+    var hm = ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+    if(d.toDateString() === now.toDateString()) return '오늘 ' + hm;
+    return (d.getMonth()+1) + '/' + d.getDate() + ' ' + hm;
+  }
+
+  function renderRate(stale){
+    if(!rateInfo) return;
+    rateText.textContent = '1 USD = ' + rate.toLocaleString('ko-KR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' KRW';
+    var meta = rateInfo.source + ' · ' + timeLabel(rateInfo.updated) + ' 기준';
+    if(stale){ meta = '오프라인 · 저장된 환율 (' + timeLabel(rateInfo.fetched) + ' 받음)'; }
+    rateMeta.className = stale ? 'stale' : '';
+    rateMeta.textContent = meta;
+  }
+
+  // ---------- 숫자 표시 ----------
+  function fmtKRW(n){ return Math.round(n).toLocaleString('ko-KR'); }
+  function fmtUSD(n){ return n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+  // 123456789 → "1억 2,345만 6,789원"
+  function koreanUnits(n){
+    n = Math.round(n);
+    if(n < 10000) return '';
+    var units = [['조',1e12],['억',1e8],['만',1e4]], parts = [];
+    units.forEach(function(u){
+      var q = Math.floor(n / u[1]);
+      if(q){ parts.push(q.toLocaleString('ko-KR') + u[0]); n -= q * u[1]; }
+    });
+    if(n) parts.push(n.toLocaleString('ko-KR'));
+    return parts.join(' ') + '원';
+  }
+
+  // 입력값을 숫자로 (콤마 등 제거)
+  function parseNum(str, allowDot){
+    var s = str.replace(allowDot ? /[^0-9.]/g : /[^0-9]/g, '');
+    if(allowDot){ var i = s.indexOf('.'); if(i >= 0) s = s.slice(0, i+1) + s.slice(i+1).replace(/\./g,'').slice(0,2); }
+    return s;
+  }
+
+  // 커서 위치를 유지하면서 콤마 포맷 적용
+  function reformat(el, formatted){
+    var pos = el.selectionStart, old = el.value;
+    var digitsBefore = old.slice(0, pos).replace(/[^0-9.]/g, '').length;
+    el.value = formatted;
+    if(document.activeElement !== el) return;
+    var p = 0, seen = 0;
+    while(p < formatted.length && seen < digitsBefore){ if(/[0-9.]/.test(formatted[p])) seen++; p++; }
+    try{ el.setSelectionRange(p, p); }catch(e){}
+  }
+
+  function renderAll(except){
+    if(except !== 'krw') krwEl.value = krw ? fmtKRW(krw) : '';
+    if(except !== 'usd') usdEl.value = (krw && rate) ? fmtUSD(krw / rate) : '';
+    $('krwHint').textContent = koreanUnits(krw);
+    $('usdHint').textContent = (krw && rate && krw / rate < 1) ? (krw / rate * 100).toFixed(1) + '¢' : '';
+    clearBtn.style.visibility = krw ? 'visible' : 'hidden';
+    renderTable();
+    try{ localStorage.setItem('fxKrw', String(krw)); }catch(e){}
+  }
+
+  krwEl.addEventListener('input', function(){
+    var s = parseNum(krwEl.value, false).replace(/^0+(?=\d)/, '');
+    krw = Math.min(parseInt(s || '0', 10), MAX_KRW);
+    reformat(krwEl, s ? fmtKRW(krw) : '');
+    renderAll('krw');
+  });
+
+  usdEl.addEventListener('input', function(){
+    var s = parseNum(usdEl.value, true).replace(/^0+(?=\d)/, '');
+    var int = s.split('.')[0], dec = s.indexOf('.') >= 0 ? '.' + s.split('.')[1] : '';
+    var shown = (int ? parseInt(int, 10).toLocaleString('en-US') : (dec ? '0' : '')) + dec;
+    reformat(usdEl, shown);
+    var usd = parseFloat(s || '0');
+    krw = rate ? Math.min(Math.round(usd * rate), MAX_KRW) : 0;
+    renderAll('usd');
+  });
+
+  // 칸을 누르면 전체 선택 (바로 새 금액 입력). 그 전에 타이핑이 시작되면 취소.
+  [krwEl, usdEl].forEach(function(el){
+    var selTimer = null;
+    el.addEventListener('focus', function(){ selTimer = setTimeout(function(){ el.select(); }, 0); });
+    el.addEventListener('input', function(){ clearTimeout(selTimer); }, true);
+    el.addEventListener('blur', function(){ renderAll(); });
+  });
+
+  clearBtn.addEventListener('click', function(){ krw = 0; renderAll(); krwEl.focus(); });
+
+  // ---------- 빠른 입력 ----------
+  var CHIPS = [[1000,'+1천'],[5000,'+5천'],[10000,'+1만'],[50000,'+5만'],[100000,'+10만'],[500000,'+50만'],[1000000,'+100만'],[0,'C']];
+  var chipsEl = $('chips');
+  CHIPS.forEach(function(c){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = c[1]; b.dataset.v = String(c[0]);
+    chipsEl.appendChild(b);
+  });
+  chipsEl.addEventListener('click', function(e){
+    var c = e.target.closest('.chip'); if(!c) return;
+    var v = parseInt(c.dataset.v, 10);
+    krw = v ? Math.min(krw + v, MAX_KRW) : 0;
+    renderAll();
+  });
+
+  // ---------- 금액표 ----------
+  var TABLE = [1000, 10000, 50000, 100000, 1000000, 10000000];
+  var tableEl = $('table');
+  TABLE.forEach(function(v){
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>₩' + fmtKRW(v) + '</td><td class="t"></td>';
+    tableEl.appendChild(tr);
+  });
+  function renderTable(){
+    var cells = tableEl.querySelectorAll('td.t');
+    TABLE.forEach(function(v, i){ cells[i].textContent = rate ? '$' + fmtUSD(v / rate) : '–'; });
+  }
+
+  // ---------- 시작 ----------
+  try{
+    var savedKrw = parseInt(localStorage.getItem('fxKrw'), 10);
+    if(isFinite(savedKrw) && savedKrw > 0) krw = Math.min(savedKrw, MAX_KRW);
+    var saved = JSON.parse(localStorage.getItem('fxRate') || 'null');
+    if(saved && saved.rate > 0){ setRate(saved, true); }
+  }catch(e){}
+  renderAll();
+  loadRate();
+
+  refreshBtn.addEventListener('click', loadRate);
+  // 화면을 보고 있는 동안 1분마다 갱신, 다시 열면 즉시 갱신
+  setInterval(function(){ if(!document.hidden) loadRate(); }, 60000);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) loadRate(); });
+  window.addEventListener('online', loadRate);
+
+  // 설치 버튼 (안드로이드 Chrome)
+  var deferred = null, installBtn = $('install');
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault(); deferred = e; installBtn.style.display = 'block';
+  });
+  installBtn.addEventListener('click', function(){
+    if(!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then(function(){ deferred = null; installBtn.style.display = 'none'; });
+  });
+  window.addEventListener('appinstalled', function(){ installBtn.style.display = 'none'; });
+
+  // 오프라인 지원
+  if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+    });
+  }
+})();
+</script>
+</body>
+</html>

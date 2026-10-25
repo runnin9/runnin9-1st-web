@@ -1,0 +1,20 @@
+{
+  "name": "원 → 달러 환율 계산기",
+  "short_name": "원→달러",
+  "description": "원화(KRW) 금액을 실시간 환율로 미국 달러(USD)로 계산합니다.",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "id": "/runnin9-1st-web/fx/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1614",
+  "theme_color": "#0b1614",
+  "categories": ["finance", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
