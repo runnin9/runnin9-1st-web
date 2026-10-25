@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 위젯은 바탕화면 위에 떠 있으므로 항상 어두운 카드 -->
+    <color name="widget_bg">#E6122520</color>
+    <color name="widget_fg">#EEFAF6</color>
+    <color name="widget_muted">#8FB0A6</color>
+    <color name="widget_accent">#5EE0B0</color>
+    <color name="icon_bg">#0F2622</color>
+
+    <color name="bg">#F1F6F4</color>
+    <color name="card">#FFFFFF</color>
+    <color name="card2">#E6F0EC</color>
+    <color name="fg">#0F2620</color>
+    <color name="muted">#55716A</color>
+    <color name="line">#D3E2DC</color>
+    <color name="accent">#047857</color>
+</resources>

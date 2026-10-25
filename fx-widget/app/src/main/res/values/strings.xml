@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">원→달러</string>
+    <string name="widget_name">원→달러 환율</string>
+    <string name="widget_desc">원화 금액을 실시간 환율로 달러로 보여줍니다</string>
+    <string name="refresh">환율 새로고침</string>
+</resources>
