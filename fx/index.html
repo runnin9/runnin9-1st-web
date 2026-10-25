@@ -100,6 +100,7 @@ summary::after{content:"＋";float:right;color:var(--muted)}
 details[open] summary::after{content:"－"}
 details p{margin:0 0 12px;font-size:13.5px;color:var(--muted);line-height:1.6}
 details p b{color:var(--fg)}
+details p a, details p a b{color:var(--accent)}
 footer{margin-top:18px;text-align:center;font-size:11.5px;color:var(--muted)}
 footer a{color:inherit}
 </style>
@@ -156,6 +157,7 @@ footer a{color:inherit}
     <p><b>환율</b>: 앱을 열 때와 화면을 보고 있는 동안 1분마다 자동으로 최신 환율을 받아옵니다. 여러 공개 환율 서비스를 차례로 시도하고, 인터넷이 끊기면 마지막으로 받은 환율을 사용합니다(노란색으로 표시).</p>
     <p><b>참고</b>: 표시되는 환율은 시장 기준(중간) 환율입니다. 은행·카드사의 실제 환전/결제 환율은 수수료가 붙어 조금 다를 수 있습니다.</p>
     <p>달러 칸에 숫자를 넣으면 반대로 원화도 계산됩니다.</p>
+    <p><b>바탕화면 위젯</b>: 앱을 열지 않고 바탕화면에서 바로 보고 싶다면 <a href="https://github.com/runnin9/runnin9-1st-web/releases/download/fx-widget-latest/fx-widget.apk"><b>안드로이드 위젯 앱(APK) 받기</b></a>. 설치 후 바탕화면을 길게 누르기 → 위젯 → '원→달러 환율'을 추가하세요.</p>
   </details>
 
   <footer><a href="../">← 목록으로</a></footer>
